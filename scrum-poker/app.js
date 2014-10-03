@@ -3,6 +3,7 @@ console.log('SP - Load');
 function createDefaultState() {
 	return {
 		cardSelected: "None",
+		cardHistory: [],
 		needBreak: false
 	};
 }
@@ -26,6 +27,14 @@ phonecatApp.controller('mainCtrl', function ($scope) {
 	};
 
 	$scope.selectCard = function(card) {
+		if($scope.state.cardSelected === card) {
+			return;
+		}
+
+		if($scope.reveal && $scope.state.cardSelected && $scope.state.cardSelected !== "None") {
+			$scope.state.cardHistory.unshift($scope.state.cardSelected);
+		}
+
 		if(card === "Break") {
 			$scope.state.needBreak = !$scope.state.needBreak;
 		} else {
@@ -61,6 +70,7 @@ phonecatApp.controller('mainCtrl', function ($scope) {
 			if(eventObj.addedKeys[e].key === '!resetAll') {
 				if(eventObj.addedKeys[e].value != $scope.lastReset) {
 					$scope.lastReset = eventObj.addedKeys[e].value;
+					$scope.state.cardHistory = [];
 					$scope.selectCard('None');
 				}
 			} else if(eventObj.addedKeys[e].key === '!reveal') {
