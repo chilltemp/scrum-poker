@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Module>
+  <ModulePrefs title="Scrum Poker">
+    <Require feature="rpc"/>
+    <!--Require feature="views"/-->
+  </ModulePrefs>
+  <Content type="html">
+    <![CDATA[
+###app.html###
+    ]]>
+  </Content>
+</Module>
