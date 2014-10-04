@@ -149,7 +149,6 @@ body {
 .buttons button.btn-horiz {
   display: inline-block;
 }
-
     </style>
   </head>
   <body ng-controller="mainCtrl">
@@ -178,7 +177,7 @@ body {
               <div ng-show="!reveal && person.state.cardSelected == 'None'" class="cardNone"></div>
               <div ng-show="!reveal && person.state.cardSelected != 'None'" class="cardBack"></div>
             </div>
-            <div class="pokerCardSliceLg" ng-show="reveal" ng-repeat="card in person.state.cardHistory track by $index"">
+            <div class="pokerCardSliceLg" ng-show="reveal" ng-repeat="card in person.state.cardHistory track by $index">
               <div class="card{{card}}"></div>
             </div>
             <div class="pokerCardLg" ng-show="person.state.needBreak"><div class="cardBreak"></div></div>

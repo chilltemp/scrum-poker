@@ -20,11 +20,11 @@ sub readFile{
 	open(F, $name) or die("Could not open file: $name");
 
 	while( my $line = <F>)  {   
-		if( $line =~ /^\s*###([\w\.\d!-]+)###\s*$/ ) {
+		if( $line =~ /^\s*(<!--|\/\*)*\s*###([\w\.\d!-]+)###\s*(-->|\*\/)*\s*$/ ) {
 			if( $1 =~ "!date" ) {
 				print OUT strftime("%x %r\n", localtime());
 			} else {
-				readFile("$appName/$1");
+				readFile("$appName/$2");
 			}
 		} else {
 	    	print OUT $line;

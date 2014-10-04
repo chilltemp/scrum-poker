@@ -1,146 +1,7 @@
 <html ng-app="scrumPokerHangout">
   <head>
     <style>
-body {
-  background: #DDD;
-  color: #000;
-}
-.person {
-  list-style: none;
-  padding: 5px;
-  clear: both;
-
-}
-.person li {
-  list-style: none;
-  margin-bottom: .5em;
-
-}
-.avatar {
-  /*width: 64px;*/
-  height: 4em;
-}
-.infoBlock {
-  vertical-align: top;
-  display: inline-block;
-  width: 220px;
-}
-.infoBlock p {
-  margin: 0 .5em .5em .5em;
-}
-.pokerCardSm {
-  height: 2em;
-  width: 1.5em;
-  border: 2px solid #aaa;
-  -webkit-border-radius: 6px;
-  -moz-border-radius: 6px;
-  border-radius: 6px;
-  float: left;
-  text-align: center;
-  background: #55f;
-  margin: 3px;
-}
-.pokerCardSm div {
-  font-size: 1.8em;
-  background: transparent;
-}
-.pokerCardLg {
-  height: 4em;
-  width: 3em;
-  border: 2px solid #aaa;
-  -webkit-border-radius: 10px;
-  -moz-border-radius: 10px;
-  border-radius: 10px;
-  float: right;
-  text-align: center;
-  background: #55f;
-}
-.pokerCardLg div {
-  margin-top: .1em;
-  font-size: 3em;
-  background: transparent;
-}
-.pokerCardSliceLg {
-  height: 4em;
-  width: 1em;
-  border-left: 2px solid #aaa;
-  border-top: 2px solid #aaa;
-  border-bottom: 2px solid #aaa;
-  -webkit-border-top-left-radius: 10px;
-  -webkit-border-bottom-left-radius: 10px;
-  -moz-border-radius-topleft: 10px;
-  -moz-border-radius-bottomleft: 10px;
-  border-top-left-radius: 10px;
-  border-bottom-left-radius: 10px;
-  float: right;
-  text-align: center;
-  background: #55f;
-}
-.pokerCardSliceLg div {
-  margin-top: .2em;
-}
-.pokerCardSm .cardNone:before { content: "?";}
-.card0:before { content: "0"; }
-.card1:before { content: "1"; }
-.card2:before { content: "2"; }
-.card3:before { content: "3"; }
-.card5:before { content: "5"; }
-.card8:before { content: "8"; }
-.card13, .card20, .card40 { padding-top: .15em; }
-.card13:before { content: "13"; font-size: .7em; }
-.card20:before { content: "20"; font-size: .7em; }
-.card40:before { content: "40"; font-size: .7em; }
-.card100 { padding-top: .3em; }
-.card100:before { content: "100"; font-size: .5em; }
-.cardHalf:before { content: "\00BD"; }
-.cardInf:before { content: "\221E"; }
-.cardBack:before { content: "\2713"; }
-
-.cardBreak {
-  background-size: contain;
-  height: 100%;
-  background-position: 0 .1em;
-  background-repeat: no-repeat;
-  ###background-image-coffee.css###
-}
-
-/* card glow yellow */
-.consensus {
-  background: radial-gradient(ellipse at center, yellow 0%,#55f 100%);
-}
-
-.cardStateNone {
-  border-style: dotted;
-  border-color: #000;
-  background: #aaa;
-}
-.cardStateSelected {
-  border-color: yellow;
-  color: yellow;
-}
-.cardStateToggle {
-  background: yellow;
-}
-.info {
-  clear: both;
-}
-/*.info:before {
-  content: "\2713\2714\2605\2606\265e\2660\2661\2662\2663\2664\2665\2666\2667\2668\2622\2623"
-}*/
-.noApp {
-  color: grey;
-  font-style: italic;
-}
-.buttons {
-  float: right;
-}
-.buttons button {
-  display: block;
-}
-.buttons button.btn-horiz {
-  display: inline-block;
-}
-
+    /* ###app.css### */
     </style>
   </head>
   <body ng-controller="mainCtrl">
@@ -169,7 +30,7 @@ body {
               <div ng-show="!reveal && person.state.cardSelected == 'None'" class="cardNone"></div>
               <div ng-show="!reveal && person.state.cardSelected != 'None'" class="cardBack"></div>
             </div>
-            <div class="pokerCardSliceLg" ng-show="reveal" ng-repeat="card in person.state.cardHistory track by $index"">
+            <div class="pokerCardSliceLg" ng-show="reveal" ng-repeat="card in person.state.cardHistory track by $index">
               <div class="card{{card}}"></div>
             </div>
             <div class="pokerCardLg" ng-show="person.state.needBreak"><div class="cardBreak"></div></div>
@@ -190,7 +51,7 @@ body {
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js"></script>
     <script>
-    ###app.js###
+    /* ###app.js### */
     </script>
   </body>
 </html>
