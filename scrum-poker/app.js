@@ -15,15 +15,37 @@ pokerApp.controller('mainCtrl', function ($scope) {
 	$scope.people = [];
 	$scope.state = createDefaultState();
 	$scope.reveal = false;
+	$scope.animate = false;
+	$scope.cfg = {
+		lgMinFont: 4,
+		lgMaxFont: 48,
+		lgAutoSize: true
+	};
 	/* Additional properties defined in the resetMe function below. */
 
 
 	$scope.update = _.debounce($scope.$apply, 100);
 
 	$scope.mainListSize = function(delta) {
-		var fontSize = parseInt($("#mainList").css("font-size"));
-		fontSize = fontSize + delta + "px";
-		$("#mainList").css({'font-size':fontSize});
+		var mainList = $("#mainList");
+		if(delta === 'auto') {
+			var w = $(window);
+			var d = $(document);
+
+			for(var f = $scope.cfg.lgMaxFont; f >= $scope.cfg.lgMinFont; f--) {
+				mainList.css({'font-size': f});
+				if(d.height() <= w.height()) {
+					break;
+				}
+			}
+
+		} else {
+			var fontSize = parseInt(mainList.css("font-size"));
+			fontSize = fontSize + delta + "px";
+			mainList.css({'font-size': fontSize});
+		}
+
+		$('#debug').text('w'+$(window).height()+'  d'+$(document).height());
 	};
 
 	$scope.selectCard = function(card) {
@@ -162,6 +184,8 @@ pokerApp.controller('mainCtrl', function ($scope) {
 			}
 			$scope.applyStateChange(e);
 		}
+
+		$scope.update();
 	});
 
 	gapi.hangout.data.onStateChanged.add(function(eventObj) {
@@ -183,4 +207,10 @@ pokerApp.controller('mainCtrl', function ($scope) {
 
 		$scope.update();
 	});
+
+	$(window).resize(_.debounce(function() {
+		$scope.mainListSize('auto');
+		$scope.animate = true;
+		$scope.update();
+	}, 500));
 });

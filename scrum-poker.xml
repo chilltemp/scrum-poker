@@ -6,6 +6,7 @@
   </ModulePrefs>
   <Content type="html">
     <![CDATA[
+<!DOCTYPE html>
 <html ng-app="scrumPokerHangout">
   <head>
     <style>
@@ -173,7 +174,7 @@ body {
   </head>
   <body ng-controller="mainCtrl">
     <h1>Scrum Poker</h1>
-
+    <div id="debug" class="info"></div>
     <div>
       <div class="pokerCardSm" ng-repeat="card in cards" ng-click="selectCard(card)"
         ng-class="{cardStateNone: card == 'None', cardStateSelected: card == state.cardSelected, cardStateToggle: card == 'Break' && state.needBreak}"><div class="card{{card}}"></div></div>
@@ -182,13 +183,14 @@ body {
       <button ng-click="showAll(false)" ng-show="reveal" title="Will hide all cards from everyone.">Hide All</button>
       <button ng-click="showAll(true)" ng-hide="reveal" title="Will show all cards to everyone.">Show All</button>
       <button ng-click="resetAll()" title="Will reset everyones cards to ?, and hide all.  NO UNDO">Reset All</button>
-      <button class="btn-horiz" ng-click="mainListSize(-1)">-</button>
-      <button class="btn-horiz" ng-click="mainListSize(1)">+</button>
+      <button class="btn-horiz" ng-click="mainListSize(-1)" ng-hide="cfg.lgAutoSize">-</button>
+      <button class="btn-horiz" ng-click="mainListSize('auto')">A</button>
+      <button class="btn-horiz" ng-click="mainListSize(1)" ng-hide="cfg.lgAutoSize">+</button>
     </div>
 
     <div id="mainList"
       <ul class="person" >
-        <li ng-repeat="person in people | orderBy:'displayName' | filter:{online: true} " class="animate">
+        <li ng-repeat="person in people | orderBy:'displayName' | filter:{online: true} " ng-class="{animate: $parent.animate}">
           <img class="avatar" src="{{person.image}}" alt="avatar" />
           <div class="infoBlock">
 
@@ -209,10 +211,122 @@ body {
 
         </li>
       </ul>
+      <!-- -->
+      <ul class="person" >
+        <li ng-repeat="person in people | orderBy:'displayName' | filter:{online: true} " ng-class="{animate: animate}">
+          <img class="avatar" src="{{person.image}}" alt="avatar" />
+          <div class="infoBlock">
+
+            <div class="pokerCardLg" ng-class="{cardStateNone: person.state.cardSelected == 'None', consensus: consensus}">
+              <div ng-show="reveal" class="card{{person.state.cardSelected}}"></div>
+              <div ng-show="!reveal && person.state.cardSelected == 'None'" class="cardNone"></div>
+              <div ng-show="!reveal && person.state.cardSelected != 'None'" class="cardBack"></div>
+            </div>
+            <div class="pokerCardSliceLg" ng-show="reveal" ng-repeat="card in person.state.cardHistory track by $index">
+              <div class="card{{card}}"></div>
+            </div>
+            <div class="pokerCardLg" ng-show="person.state.needBreak"><div class="cardBreak"></div></div>
+
+            <p class="displayName" ng-class="{noApp: !person.hasAppEnabled}">{{person.displayName}}</p>
+            <p class="noApp" ng-hide="person.hasAppEnabled">Scrum Poker not loaded.</p>
+
+          </div>
+
+        </li>
+      </ul>
+      <ul class="person" >
+        <li ng-repeat="person in people | orderBy:'displayName' | filter:{online: true} " ng-class="{animate: animate}">
+          <img class="avatar" src="{{person.image}}" alt="avatar" />
+          <div class="infoBlock">
+
+            <div class="pokerCardLg" ng-class="{cardStateNone: person.state.cardSelected == 'None', consensus: consensus}">
+              <div ng-show="reveal" class="card{{person.state.cardSelected}}"></div>
+              <div ng-show="!reveal && person.state.cardSelected == 'None'" class="cardNone"></div>
+              <div ng-show="!reveal && person.state.cardSelected != 'None'" class="cardBack"></div>
+            </div>
+            <div class="pokerCardSliceLg" ng-show="reveal" ng-repeat="card in person.state.cardHistory track by $index">
+              <div class="card{{card}}"></div>
+            </div>
+            <div class="pokerCardLg" ng-show="person.state.needBreak"><div class="cardBreak"></div></div>
+
+            <p class="displayName" ng-class="{noApp: !person.hasAppEnabled}">{{person.displayName}}</p>
+            <p class="noApp" ng-hide="person.hasAppEnabled">Scrum Poker not loaded.</p>
+
+          </div>
+
+        </li>
+      </ul>
+      <ul class="person" >
+        <li ng-repeat="person in people | orderBy:'displayName' | filter:{online: true} " ng-class="{animate: animate}">
+          <img class="avatar" src="{{person.image}}" alt="avatar" />
+          <div class="infoBlock">
+
+            <div class="pokerCardLg" ng-class="{cardStateNone: person.state.cardSelected == 'None', consensus: consensus}">
+              <div ng-show="reveal" class="card{{person.state.cardSelected}}"></div>
+              <div ng-show="!reveal && person.state.cardSelected == 'None'" class="cardNone"></div>
+              <div ng-show="!reveal && person.state.cardSelected != 'None'" class="cardBack"></div>
+            </div>
+            <div class="pokerCardSliceLg" ng-show="reveal" ng-repeat="card in person.state.cardHistory track by $index">
+              <div class="card{{card}}"></div>
+            </div>
+            <div class="pokerCardLg" ng-show="person.state.needBreak"><div class="cardBreak"></div></div>
+
+            <p class="displayName" ng-class="{noApp: !person.hasAppEnabled}">{{person.displayName}}</p>
+            <p class="noApp" ng-hide="person.hasAppEnabled">Scrum Poker not loaded.</p>
+
+          </div>
+
+        </li>
+      </ul>
+      <ul class="person" >
+        <li ng-repeat="person in people | orderBy:'displayName' | filter:{online: true} " ng-class="{animate: animate}">
+          <img class="avatar" src="{{person.image}}" alt="avatar" />
+          <div class="infoBlock">
+
+            <div class="pokerCardLg" ng-class="{cardStateNone: person.state.cardSelected == 'None', consensus: consensus}">
+              <div ng-show="reveal" class="card{{person.state.cardSelected}}"></div>
+              <div ng-show="!reveal && person.state.cardSelected == 'None'" class="cardNone"></div>
+              <div ng-show="!reveal && person.state.cardSelected != 'None'" class="cardBack"></div>
+            </div>
+            <div class="pokerCardSliceLg" ng-show="reveal" ng-repeat="card in person.state.cardHistory track by $index">
+              <div class="card{{card}}"></div>
+            </div>
+            <div class="pokerCardLg" ng-show="person.state.needBreak"><div class="cardBreak"></div></div>
+
+            <p class="displayName" ng-class="{noApp: !person.hasAppEnabled}">{{person.displayName}}</p>
+            <p class="noApp" ng-hide="person.hasAppEnabled">Scrum Poker not loaded.</p>
+
+          </div>
+
+        </li>
+      </ul>
+      <ul class="person" >
+        <li ng-repeat="person in people | orderBy:'displayName' | filter:{online: true} " ng-class="{animate: animate}">
+          <img class="avatar" src="{{person.image}}" alt="avatar" />
+          <div class="infoBlock">
+
+            <div class="pokerCardLg" ng-class="{cardStateNone: person.state.cardSelected == 'None', consensus: consensus}">
+              <div ng-show="reveal" class="card{{person.state.cardSelected}}"></div>
+              <div ng-show="!reveal && person.state.cardSelected == 'None'" class="cardNone"></div>
+              <div ng-show="!reveal && person.state.cardSelected != 'None'" class="cardBack"></div>
+            </div>
+            <div class="pokerCardSliceLg" ng-show="reveal" ng-repeat="card in person.state.cardHistory track by $index">
+              <div class="card{{card}}"></div>
+            </div>
+            <div class="pokerCardLg" ng-show="person.state.needBreak"><div class="cardBreak"></div></div>
+
+            <p class="displayName" ng-class="{noApp: !person.hasAppEnabled}">{{person.displayName}}</p>
+            <p class="noApp" ng-hide="person.hasAppEnabled">Scrum Poker not loaded.</p>
+
+          </div>
+
+        </li>
+      </ul>
+      <!-- -->
     </div>
 
 
-    <div class="info"></div>
+    
     <script src="//plus.google.com/hangouts/_/api/v1/hangout.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular.js"></script>
@@ -236,15 +350,37 @@ pokerApp.controller('mainCtrl', function ($scope) {
 	$scope.people = [];
 	$scope.state = createDefaultState();
 	$scope.reveal = false;
+	$scope.animate = false;
+	$scope.cfg = {
+		lgMinFont: 4,
+		lgMaxFont: 48,
+		lgAutoSize: true
+	};
 	/* Additional properties defined in the resetMe function below. */
 
 
 	$scope.update = _.debounce($scope.$apply, 100);
 
 	$scope.mainListSize = function(delta) {
-		var fontSize = parseInt($("#mainList").css("font-size"));
-		fontSize = fontSize + delta + "px";
-		$("#mainList").css({'font-size':fontSize});
+		var mainList = $("#mainList");
+		if(delta === 'auto') {
+			var w = $(window);
+			var d = $(document);
+
+			for(var f = $scope.cfg.lgMaxFont; f >= $scope.cfg.lgMinFont; f--) {
+				mainList.css({'font-size': f});
+				if(d.height() <= w.height()) {
+					break;
+				}
+			}
+
+		} else {
+			var fontSize = parseInt(mainList.css("font-size"));
+			fontSize = fontSize + delta + "px";
+			mainList.css({'font-size': fontSize});
+		}
+
+		$('#debug').text('w'+$(window).height()+'  d'+$(document).height());
 	};
 
 	$scope.selectCard = function(card) {
@@ -383,6 +519,8 @@ pokerApp.controller('mainCtrl', function ($scope) {
 			}
 			$scope.applyStateChange(e);
 		}
+
+		$scope.update();
 	});
 
 	gapi.hangout.data.onStateChanged.add(function(eventObj) {
@@ -404,6 +542,12 @@ pokerApp.controller('mainCtrl', function ($scope) {
 
 		$scope.update();
 	});
+
+	$(window).resize(_.debounce(function() {
+		$scope.mainListSize('auto');
+		$scope.animate = true;
+		$scope.update();
+	}, 500));
 });
     </script>
   </body>
