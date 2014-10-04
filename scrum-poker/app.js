@@ -45,7 +45,7 @@ pokerApp.controller('mainCtrl', function ($scope) {
 			mainList.css({'font-size': fontSize});
 		}
 
-		$('#debug').text('w'+$(window).height()+'  d'+$(document).height());
+		//$('#debug').text('w'+$(window).height()+'  d'+$(document).height());
 	};
 
 	$scope.selectCard = function(card) {
