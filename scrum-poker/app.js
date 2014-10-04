@@ -8,15 +8,16 @@ function createDefaultState() {
 	};
 }
 
-var phonecatApp = angular.module('scrumPokerHangout', []);
+var pokerApp = angular.module('scrumPokerHangout', []);
 
-phonecatApp.controller('mainCtrl', function ($scope) {
+pokerApp.controller('mainCtrl', function ($scope) {
 
 	$scope.cards = ["0","Half","1","2","3","5","8","13","20","40","100","Inf","Break","None"];
 	$scope.people = [];
 	$scope.state = createDefaultState();
-	$scope.lastReset = null;
 	$scope.reveal = false;
+	/* Additional properties defined in the resetMe function below. */
+
 
 	$scope.update = _.debounce($scope.$apply, 100);
 
@@ -63,18 +64,39 @@ phonecatApp.controller('mainCtrl', function ($scope) {
 		$scope.update();
 	};
 
+	$scope.hasConsensus = function() {
+		var card = null;
+		for (var s = $scope.people.length - 1; s >= 0; s--) {
+			if($scope.people[s].state.cardSelected === "None") {
+				return false;
+			} else if(card === null) {
+				card = $scope.people[s].state.cardSelected;
+			} else if(card !== $scope.people[s].state.cardSelected) {
+				return false;
+			}
+		}
+
+		return true;
+	};
+
 	$scope.applyStateChange = function(eventObj) {
+		$scope.consensus = false;
 
 		for (var e = eventObj.addedKeys.length - 1; e >= 0; e--) {
 
 			if(eventObj.addedKeys[e].key === '!resetAll') {
 				if(eventObj.addedKeys[e].value != $scope.lastReset) {
-					$scope.lastReset = eventObj.addedKeys[e].value;
-					$scope.state.cardHistory = [];
-					$scope.selectCard('None');
+					$scope.resetMe(eventObj.addedKeys[e].value);
 				}
 			} else if(eventObj.addedKeys[e].key === '!reveal') {
 				$scope.reveal = JSON.parse(eventObj.addedKeys[e].value);
+
+				if($scope.reveal) {
+					$scope.revealsSinceReset++;
+					if($scope.revealsSinceReset === 1 && $scope.people.length > 1) {
+						$scope.consensus = $scope.hasConsensus();
+					}
+				}
 			} else {
 				for (var s = $scope.people.length - 1; s >= 0; s--) {
 					if( $scope.people[s].id === eventObj.addedKeys[e].key ) {
@@ -112,6 +134,17 @@ phonecatApp.controller('mainCtrl', function ($scope) {
 
 		$scope.update();
 	};
+
+	$scope.resetMe = function(resetTime) {
+		$scope.lastReset = resetTime;
+		$scope.consensus = false;
+		$scope.selectCard('None');
+		$scope.state.cardHistory = [];
+		$scope.revealsSinceReset = 0;
+
+		$scope.update();
+	};
+	$scope.resetMe(null);
 
 	gapi.hangout.onApiReady.add(function(eventObj){
 		if (eventObj.isApiReady) {

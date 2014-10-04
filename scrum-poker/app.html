@@ -42,6 +42,7 @@ body {
 }
 .pokerCardSm div {
   font-size: 1.8em;
+  background: transparent;
 }
 .pokerCardLg {
   height: 4em;
@@ -57,6 +58,7 @@ body {
 .pokerCardLg div {
   margin-top: .1em;
   font-size: 3em;
+  background: transparent;
 }
 .pokerCardSliceLg {
   height: 4em;
@@ -101,7 +103,11 @@ body {
   background-repeat: no-repeat;
   ###background-image-coffee.css###
 }
-/*.cardBreak:before { content: "B"; }*/
+
+/* card glow yellow */
+.consensus {
+  background: radial-gradient(ellipse at center, yellow 0%,#55f 100%);
+}
 
 .cardStateNone {
   border-style: dotted;
@@ -158,12 +164,12 @@ body {
           <img class="avatar" src="{{person.image}}" alt="avatar" />
           <div class="infoBlock">
 
-            <div class="pokerCardLg" ng-class="{cardStateNone: person.state.cardSelected == 'None'}">
+            <div class="pokerCardLg" ng-class="{cardStateNone: person.state.cardSelected == 'None', consensus: consensus}">
               <div ng-show="reveal" class="card{{person.state.cardSelected}}"></div>
               <div ng-show="!reveal && person.state.cardSelected == 'None'" class="cardNone"></div>
               <div ng-show="!reveal && person.state.cardSelected != 'None'" class="cardBack"></div>
             </div>
-            <div class="pokerCardSliceLg" ng-repeat="card in person.state.cardHistory track by $index"">
+            <div class="pokerCardSliceLg" ng-show="reveal" ng-repeat="card in person.state.cardHistory track by $index"">
               <div class="card{{card}}"></div>
             </div>
             <div class="pokerCardLg" ng-show="person.state.needBreak"><div class="cardBreak"></div></div>
