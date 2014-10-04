@@ -149,7 +149,27 @@ body {
 .buttons button.btn-horiz {
   display: inline-block;
 }
-    </style>
+
+.animate.ng-enter, 
+.animate.ng-leave { 
+    transition: 2000ms cubic-bezier(0.55, 0.055, 0.675, 0.19) all;
+    position: relative;
+    display: block;
+} 
+ 
+.animate.ng-leave.animate.ng-leave-active,
+.animate.ng-enter {
+    transform: scaleY(0);
+    height: 0px;
+    opacity: 0;
+}
+ 
+.animate.ng-enter.animate.ng-enter-active,
+.animate.ng-leave {
+    transform: scaleY(1);
+    height: 30px;
+    opacity: 1;
+}    </style>
   </head>
   <body ng-controller="mainCtrl">
     <h1>Scrum Poker</h1>
@@ -168,7 +188,7 @@ body {
 
     <div id="mainList"
       <ul class="person" >
-        <li ng-repeat="person in people | orderBy : 'displayName'" ng-show="person.online">
+        <li ng-repeat="person in people | orderBy:'displayName' | filter:{online: true} " class="animate">
           <img class="avatar" src="{{person.image}}" alt="avatar" />
           <div class="infoBlock">
 
@@ -195,10 +215,10 @@ body {
     <div class="info"></div>
     <script src="//plus.google.com/hangouts/_/api/v1/hangout.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular-animate.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js"></script>
     <script>
-console.log('SP - Load');
 
 function createDefaultState() {
 	return {
@@ -208,7 +228,7 @@ function createDefaultState() {
 	};
 }
 
-var pokerApp = angular.module('scrumPokerHangout', []);
+var pokerApp = angular.module('scrumPokerHangout', ['ngAnimate']);
 
 pokerApp.controller('mainCtrl', function ($scope) {
 
@@ -348,12 +368,9 @@ pokerApp.controller('mainCtrl', function ($scope) {
 
 	gapi.hangout.onApiReady.add(function(eventObj){
 		if (eventObj.isApiReady) {
-			console.log('SP - Start');
 
 			var participants = gapi.hangout.getParticipants();
 			var state = gapi.hangout.data.getState();
-			console.log(state);
-			console.log(participants);
 
 			$scope.applyParticipants(participants);
 
@@ -365,8 +382,6 @@ pokerApp.controller('mainCtrl', function ($scope) {
 				}
 			}
 			$scope.applyStateChange(e);
-
-			console.log('SP - Start X');
 		}
 	});
 

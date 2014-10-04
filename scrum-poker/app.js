@@ -1,4 +1,3 @@
-console.log('SP - Load');
 
 function createDefaultState() {
 	return {
@@ -8,7 +7,7 @@ function createDefaultState() {
 	};
 }
 
-var pokerApp = angular.module('scrumPokerHangout', []);
+var pokerApp = angular.module('scrumPokerHangout', ['ngAnimate']);
 
 pokerApp.controller('mainCtrl', function ($scope) {
 
@@ -148,12 +147,9 @@ pokerApp.controller('mainCtrl', function ($scope) {
 
 	gapi.hangout.onApiReady.add(function(eventObj){
 		if (eventObj.isApiReady) {
-			console.log('SP - Start');
 
 			var participants = gapi.hangout.getParticipants();
 			var state = gapi.hangout.data.getState();
-			console.log(state);
-			console.log(participants);
 
 			$scope.applyParticipants(participants);
 
@@ -165,8 +161,6 @@ pokerApp.controller('mainCtrl', function ($scope) {
 				}
 			}
 			$scope.applyStateChange(e);
-
-			console.log('SP - Start X');
 		}
 	});
 

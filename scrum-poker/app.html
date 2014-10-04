@@ -21,7 +21,7 @@
 
     <div id="mainList"
       <ul class="person" >
-        <li ng-repeat="person in people | orderBy : 'displayName'" ng-show="person.online">
+        <li ng-repeat="person in people | orderBy:'displayName' | filter:{online: true} " class="animate">
           <img class="avatar" src="{{person.image}}" alt="avatar" />
           <div class="infoBlock">
 
@@ -48,7 +48,8 @@
     <div class="info"></div>
     <script src="//plus.google.com/hangouts/_/api/v1/hangout.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular-animate.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js"></script>
     <script>
     /* ###app.js### */
