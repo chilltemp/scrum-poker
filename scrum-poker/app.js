@@ -18,7 +18,7 @@ pokerApp.controller('mainCtrl', function ($scope) {
 	$scope.animate = false;
 	$scope.cfg = {
 		lgMinFont: 4,
-		lgMaxFont: 48,
+		lgMaxFont: 16,
 		lgAutoSize: true
 	};
 	/* Additional properties defined in the resetMe function below. */
@@ -26,9 +26,9 @@ pokerApp.controller('mainCtrl', function ($scope) {
 
 	$scope.update = _.debounce($scope.$apply, 100);
 
-	$scope.mainListSize = function(delta) {
+	$scope.autoSizeMainList = _.debounce(function() {
 		var mainList = $("#mainList");
-		if(delta === 'auto') {
+		// if(delta === 'auto') {
 			var w = $(window);
 			var d = $(document);
 
@@ -39,14 +39,14 @@ pokerApp.controller('mainCtrl', function ($scope) {
 				}
 			}
 
-		} else {
-			var fontSize = parseInt(mainList.css("font-size"));
-			fontSize = fontSize + delta + "px";
-			mainList.css({'font-size': fontSize});
-		}
+		// } else {
+		// 	var fontSize = parseInt(mainList.css("font-size"));
+		// 	fontSize = fontSize + delta + "px";
+		// 	mainList.css({'font-size': fontSize});
+		// }
 
 		//$('#debug').text('w'+$(window).height()+'  d'+$(document).height());
-	};
+	}, 100);
 
 	$scope.selectCard = function(card) {
 		if($scope.state.cardSelected === card) {
@@ -194,6 +194,7 @@ pokerApp.controller('mainCtrl', function ($scope) {
 
 	gapi.hangout.onParticipantsChanged.add(function(eventObj) {
 		$scope.applyParticipants(eventObj.participants);
+		$scope.autoSizeMainList();
 	});
 
 	gapi.hangout.onParticipantsRemoved.add(function(eventObj) {
@@ -205,11 +206,12 @@ pokerApp.controller('mainCtrl', function ($scope) {
 			}
 		}
 
+		$scope.autoSizeMainList();
 		$scope.update();
 	});
 
 	$(window).resize(_.debounce(function() {
-		$scope.mainListSize('auto');
+		$scope.autoSizeMainList();
 		$scope.animate = true;
 		$scope.update();
 	}, 500));
