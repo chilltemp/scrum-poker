@@ -3,7 +3,8 @@ function createDefaultState() {
 	return {
 		cardSelected: "None",
 		cardHistory: [],
-		needBreak: false
+		needBreak: false,
+		cardBack: 'cardBackDefault'
 	};
 }
 
@@ -11,15 +12,23 @@ var pokerApp = angular.module('scrumPokerHangout', ['ngAnimate']);
 
 pokerApp.controller('mainCtrl', function ($scope) {
 
+	//$scope.icons = {};
+	/* ###icons.json### */
+
+	$scope.iconCategory = $scope.icons['default'];
+
 	$scope.cards = ["0","Half","1","2","3","5","8","13","20","40","100","Inf","Break","None"];
 	$scope.people = [];
 	$scope.state = createDefaultState();
 	$scope.reveal = false;
 	$scope.animate = false;
+	$scope.showConfig = false;
 	$scope.cfg = {
-		lgMinFont: 4,
-		lgMaxFont: 16,
-		lgAutoSize: true
+		smSize: 16,
+		lgMinSize: 16,
+		lgMaxSize: 64,
+		lgAutoSize: true,
+		cardBack: 'cardBackDefault'
 	};
 	/* Additional properties defined in the resetMe function below. */
 
@@ -28,25 +37,24 @@ pokerApp.controller('mainCtrl', function ($scope) {
 
 	$scope.autoSizeMainList = _.debounce(function() {
 		var mainList = $("#mainList");
-		// if(delta === 'auto') {
-			var w = $(window);
-			var d = $(document);
+		var w = $(window);
+		var d = $(document);
 
-			for(var f = $scope.cfg.lgMaxFont; f >= $scope.cfg.lgMinFont; f--) {
-				mainList.css({'font-size': f});
-				if(d.height() <= w.height()) {
-					break;
-				}
+		for(var f = $scope.cfg.lgMaxSize; f >= $scope.cfg.lgMinSize; f--) {
+			mainList.css({ 'font-size': (f/4)+'px' });
+			if(d.height() <= w.height()) {
+				break;
 			}
-
-		// } else {
-		// 	var fontSize = parseInt(mainList.css("font-size"));
-		// 	fontSize = fontSize + delta + "px";
-		// 	mainList.css({'font-size': fontSize});
-		// }
-
-		//$('#debug').text('w'+$(window).height()+'  d'+$(document).height());
+		}
 	}, 100);
+
+	$scope.applyConfig = function() {
+		$scope.state.cardBack = $scope.cfg.cardBack;
+		$('#myCards').css({ 'font-size': $scope.cfg.smSize +'px'});
+		$scope.autoSizeMainList();
+		$scope.showConfig = false;
+		$scope.sync();
+	};
 
 	$scope.selectCard = function(card) {
 		if($scope.state.cardSelected === card) {

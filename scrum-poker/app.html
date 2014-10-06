@@ -7,11 +7,11 @@
     </style>
   </head>
   <body ng-controller="mainCtrl">
-    <!-- <div class="buttons">
-      <button class="iconBtn"><span class="fa fa-gear"/></button>
-    </div> -->
+    <div class="buttons">
+      <button class="iconBtn" ng-click="showConfig = true"><span class="fa fa-gear"/></button>
+    </div>
     <h1 class="title">Scrum Poker</h1>
-    <div>
+    <div id="myCards">
       <div class="pokerCardSm" ng-repeat="card in cards" ng-click="selectCard(card)"
         ng-class="{cardStateNone: card == 'None', cardStateSelected: card == state.cardSelected, cardStateToggle: card == 'Break' && state.needBreak}"><div class="card{{card}}"></div></div>
     </div>
@@ -31,7 +31,7 @@
             <div class="pokerCardLg" ng-class="{cardStateNone: person.state.cardSelected == 'None', consensus: consensus}">
               <div ng-show="reveal" class="card{{person.state.cardSelected}}"></div>
               <div ng-show="!reveal && person.state.cardSelected == 'None'" class="cardNone"></div>
-              <div ng-show="!reveal && person.state.cardSelected != 'None'" class="cardBack"></div>
+              <div ng-show="!reveal && person.state.cardSelected != 'None'" class="{{person.state.cardBack}}"></div>
             </div>
             <div class="pokerCardSliceLg" ng-show="reveal" ng-repeat="card in person.state.cardHistory track by $index">
               <div class="card{{card}}"></div>
@@ -47,6 +47,36 @@
       </ul>
     </div>
 
+    <div class="configOuter" ng-show="showConfig">
+      <div class="configMiddle">
+        <div class="configInner">
+          <h2>Config</h2>
+          <label>Size of my cards: <span class="value">{{cfg.smSize}}</span></label>
+          <input type="range" min="1" max="128" ng-model="cfg.smSize"/>
+          <label>Minimum size of participants: <span class="value">{{cfg.lgMinSize}}</span></label>
+          <input type="range" min="1" max="128" ng-model="cfg.lgMinSize"/>
+          <label>Maximum size of participants: <span class="value">{{cfg.lgMaxSize}}</span></label>
+          <input type="range" min="1" max="128" ng-model="cfg.lgMaxSize"/>
+
+          <div>
+            <div class="pokerCardLg">
+              <div class="{{cfg.cardBack}}"></div>
+            </div>
+            <label>Card back:</label>
+            <select ng-model="iconCategory" ng-options="value as key for (key, value) in icons"></select>
+            <div class="selectableIcons">
+              <span ng-repeat="icon in iconCategory" class="{{icon.classes}}" ng-click="cfg.cardBack = icon.classes" title="{{icon.name}}"></span>
+            </div>
+          </div>
+
+          <div class="buttons">
+            <button class="iconBtn" ng-click="applyConfig()"><span class="fa fa-check"/></button>
+          </div>
+          <div class="configFooter"/>
+        </div>
+      </div>
+    </div>
+
     <div id="debug" class="info"></div>
 
     
@@ -55,6 +85,7 @@
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular-animate.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/js-yaml/3.0.2/js-yaml.min.js"></script>
     <script>
     /* ###app.js### */
     </script>
