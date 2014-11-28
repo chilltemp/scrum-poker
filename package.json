@@ -1,0 +1,9 @@
+{
+  "name": "hangouts-scrum-poker",
+  "private": true,
+  "author": "Charles Hill",
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "js-yaml": "^3.2.3"
+  }
+}

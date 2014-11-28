@@ -1,0 +1,75 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html ng-app="scrumPokerHangout">
+    <head>
+        <meta name="generator" content="HTML Tidy for Mac OS X (vers 31 October 2006 - Apple Inc. build 15.12), see www.w3.org">
+        <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <style type="text/css">
+/* ###app.css### */
+        </style>
+        <title></title>
+    </head>
+    <body ng-controller="mainCtrl">
+        <div class="buttons"></div>
+        <h1 class="title">
+            Scrum Poker
+        </h1>
+        <div id="myCards">
+            <div class="pokerCardSm" ng-repeat="card in cards" ng-click="selectCard(card)" ng-class="{cardStateNone: card == 'None', cardStateSelected: card == state.cardSelected, cardStateToggle: card == 'Break' &amp;&amp; state.needBreak}">
+                <div class="card{{card}}"></div>
+            </div>
+        </div>
+        <div class="buttons"></div>
+        <div id="mainList">
+            <ul class="person">
+                <li ng-repeat="person in people | orderBy:'displayName' | filter:{online: true}" ng-class="{animate: $parent.animate}">
+                    <img class="avatar" src="{{person.image}}" alt="avatar">
+                    <div class="infoBlock">
+                        <div class="pokerCardLg" ng-class="{cardStateNone: person.state.cardSelected == 'None', consensus: consensus}">
+                            <div ng-show="reveal" class="card{{person.state.cardSelected}}"></div>
+                            <div ng-show="!reveal &amp;&amp; person.state.cardSelected == 'None'" class="cardNone"></div>
+                            <div ng-show="!reveal &amp;&amp; person.state.cardSelected != 'None'" class="{{person.state.cardBack}}"></div>
+                        </div>
+                        <div class="pokerCardSliceLg" ng-show="reveal" ng-repeat="card in person.state.cardHistory track by $index">
+                            <div class="card{{card}}"></div>
+                        </div>
+                        <div class="pokerCardLg" ng-show="person.state.needBreak">
+                            <div class="cardBreak"></div>
+                        </div>
+                        <p class="displayName" ng-class="{noApp: !person.hasAppEnabled}">
+                            {{person.displayName}}
+                        </p>
+                        <p class="noApp" ng-hide="person.hasAppEnabled">
+                            Scrum Poker not loaded.
+                        </p>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <div class="configOuter" ng-show="showConfig">
+            <div class="configMiddle">
+                <div class="configInner">
+                    <h2>
+                        Config
+                    </h2><label>Size of my cards: <span class="value">{{cfg.smSize}}</span></label> <input type="range" min="1" max="128" ng-model="cfg.smSize"> <label>Minimum size of participants: <span class="value">{{cfg.lgMinSize}}</span></label> <input type="range" min="1" max="128" ng-model="cfg.lgMinSize"> <label>Maximum size of participants: <span class="value">{{cfg.lgMaxSize}}</span></label> <input type="range" min="1" max="128" ng-model="cfg.lgMaxSize">
+                    <div>
+                        <div class="pokerCardLg">
+                            <div class="{{cfg.cardBack}}"></div>
+                        </div><label>Card back:</label>
+                        <div class="selectableIcons"></div>
+                    </div>
+                    <div class="buttons"></div>
+                    <div class="configFooter">
+                </div>
+            </div>
+        </div>
+        <div id="debug" class="info"></div><script src="//plus.google.com/hangouts/_/api/v1/hangout.js" type="text/javascript">
+</script><script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js" type="text/javascript">
+</script><script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular.js" type="text/javascript">
+</script><script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular-animate.js" type="text/javascript">
+</script><script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js" type="text/javascript">
+</script><script src="//cdnjs.cloudflare.com/ajax/libs/js-yaml/3.0.2/js-yaml.min.js" type="text/javascript">
+</script><script type="text/javascript">
+/* ###app.js### */
+        </script>
+    </body>
+</html>

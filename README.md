@@ -14,5 +14,5 @@
     https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/src/icons.yml
 
 ### Commands
-	node make.js; perl merge.pl scrum-poker; cp -r . ~/Google\ Drive/hangouts/scrumPoker; cp scrum-poker.xml /Volumes/myfiles.messagingengine.com/hangouts/scrum-poker.xml 
+	node make.js; perl merge.pl scrum-poker; cp -r . ~/Google\ Drive/hangouts/scrumPoker; cp scrum-poker.xml /Volumes/myfiles.messagingengine.com/hangouts/scrum-poker-dev.xml 
 

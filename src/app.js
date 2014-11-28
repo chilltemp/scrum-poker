@@ -95,17 +95,24 @@ pokerApp.controller('mainCtrl', function ($scope) {
 
 	$scope.hasConsensus = function() {
 		var card = null;
+		var cnt = 0;
+		var noneCnt = 0;
+
 		for (var s = $scope.people.length - 1; s >= 0; s--) {
 			if($scope.people[s].state.cardSelected === "None") {
-				return false;
+				if(noneCnt++ > 0) {				
+					return false;
+				}
 			} else if(card === null) {
 				card = $scope.people[s].state.cardSelected;
 			} else if(card !== $scope.people[s].state.cardSelected) {
 				return false;
 			}
+
+			cnt++;
 		}
 
-		return true;
+		return cnt > 2;
 	};
 
 	$scope.applyStateChange = function(eventObj) {
