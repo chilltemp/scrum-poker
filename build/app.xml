@@ -15,6 +15,10 @@ body {
   background: #DDD;
   color: #000;
 }
+h1 .ver {
+  font-size: .4em;
+  font-weight: normal;
+}
 .person {
   list-style: none;
   padding: 5px;
@@ -275,7 +279,8 @@ body {
         <div class="buttons">
             <button class="iconBtn" ng-click="showConfig = true"><span class="fa fa-gear"/></button>
         </div>
-        <h1 class="title">Scrum Poker</h1>
+        <h1 class="title">Scrum Poker <span class="ver">###version###</h2></h1>
+
         <div id="myCards">
             <div class="pokerCardSm" ng-repeat="card in cards" ng-click="selectCard(card)" 
                 ng-class="{cardStateNone: card == 'None', cardStateSelected: card == state.cardSelected, cardStateToggle: card == 'Break' &amp;&amp; state.needBreak}">
@@ -431,6 +436,7 @@ pokerApp.controller('mainCtrl', function ($scope) {
 	$scope.resetAll = function() {
 		gapi.hangout.data.setValue('!resetAll', (JSON.stringify(new Date())));
 		$scope.showAll(false);
+		console.log($scope);
 	};
 
 	$scope.showAll = function(reveal) {

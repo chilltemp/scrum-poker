@@ -85,6 +85,7 @@ pokerApp.controller('mainCtrl', function ($scope) {
 	$scope.resetAll = function() {
 		gapi.hangout.data.setValue('!resetAll', (JSON.stringify(new Date())));
 		$scope.showAll(false);
+		console.log($scope);
 	};
 
 	$scope.showAll = function(reveal) {

@@ -2,6 +2,10 @@ body {
   background: #DDD;
   color: #000;
 }
+h1 .ver {
+  font-size: .4em;
+  font-weight: normal;
+}
 .person {
   list-style: none;
   padding: 5px;
