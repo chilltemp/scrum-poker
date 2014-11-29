@@ -13,6 +13,17 @@ module.exports = function(grunt) {
     	}
     },
 
+	  bump: {
+	    options: {
+	      files: ['package.json'],
+	      updateConfigs: [],
+	      commit: false,
+	      createTag: false,
+	      push: false,
+	      globalReplace: false
+	    }
+	  },
+
     copy: { 
     	main: {
     		files: [
@@ -28,7 +39,7 @@ module.exports = function(grunt) {
     					var name = 'scrum-poker-' + v[0] + '-' + v[1];
     					name = src.replace('app', name);
 
-    					console.log(grunt.config.data.pkg.version + ' ==> ' + name);
+    					grunt.log.writeln(src + ' ==> ' + name);
     					return dest + name; 
     				}
     			}
@@ -65,6 +76,20 @@ module.exports = function(grunt) {
 		}
 	});
 
+	grunt.registerTask('inc-ver', function() {
+		var parts = grunt.config.data.pkg.version.split('.');
+		var ver = parseInt(parts[2]);
+		if(isNaN(ver)) {
+			return grunt.fail('Unable to parse: ' + grunt.config.data.pkg.version);
+		} 
+
+		parts[2] = ver + 1;
+		ver = parts.join('.');
+		grunt.log.writeln(grunt.config.data.pkg.version + ' ==> ' + ver);
+		grunt.config.data.pkg.version = ver;
+		grunt.file.write('package.json', JSON.stringify(grunt.config.data.pkg, null, 2));
+	});
+
   grunt.registerTask('icon-data', function() {
   	var builder = require('./icon-data.js');
   	builder.loadYaml('src/icons.yml');
@@ -75,6 +100,6 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-copy');
 	grunt.loadNpmTasks('grunt-contrib-watch');
 
-	grunt.registerTask('default', ['icon-data', 'copy:main', 'insert', 'copy:deploy']);
+	grunt.registerTask('default', ['inc-ver', 'icon-data', 'copy:main', 'insert', 'copy:deploy']);
 };
 
