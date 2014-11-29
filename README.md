@@ -9,10 +9,11 @@
 
 ## "Build"
 ### Required
-    npm install js-yaml
-    npm install cli
-    https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/src/icons.yml
+  npm install grunt
+  npm install -g grunt-cli
+  npm install
+  download https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/src/icons.yml
 
 ### Commands
-	node make.js; perl merge.pl scrum-poker; cp -r . ~/Google\ Drive/hangouts/scrumPoker; cp scrum-poker.xml /Volumes/myfiles.messagingengine.com/hangouts/scrum-poker-dev.xml 
+	grunt; cp -r . ~/Google\ Drive/hangouts/scrumPoker; cp scrum-poker.xml /Volumes/myfiles.messagingengine.com/hangouts/scrum-poker-dev.xml 
 
