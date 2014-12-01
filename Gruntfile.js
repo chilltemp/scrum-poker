@@ -92,7 +92,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('icon-data', function() {
   	var builder = require('./icon-data.js');
-  	builder.categoryMax = 60;
+  	// builder.categoryMax = 60;
 		builder.addIcon('default', 'Default', 'cardBackDefault');
   	builder.loadYaml('src/icons.yml');
   	builder.save('build/icons.json', '$scope.icons = ', ';');

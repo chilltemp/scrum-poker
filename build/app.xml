@@ -53,6 +53,7 @@ h1 .ver {
   text-align: center;
   background: #55f;
   margin: 3px;
+  cursor: pointer;
 }
 .pokerCardSm div {
   font-size: 1.8em;
@@ -120,6 +121,10 @@ h1 .ver {
 }
 .cardBreak {
   line-height: 1em;
+}
+
+.pokerCardSm:hover {
+  border-color: yellow;
 }
 
 /* card glow yellow */
@@ -233,7 +238,7 @@ h1 .ver {
   font-size: 1.5em;
 }
 
-.configOuter {
+.dialogOuter {
   position: absolute;
   top: 0;
   left: 0;
@@ -242,28 +247,31 @@ h1 .ver {
   width: 100%;
   background:rgba(0,0,0,0.5);
 }
-.configMiddle {
+.dialogMiddle {
   margin: 2.5em 3em 2.5em 2em;
+  height: 100%;
 }
-.configInner {
+.dialogInner {
+  max-height: 85%;
   width: 100%;
   background: #ddd;
   border-radius: 10px;
   padding: .5em;
+  overflow: auto;
 }
-.configInner h2 {
+.config h2 {
   margin-top: 0;
 }
-.configInner label {
+.config label {
   display: block;
 }
-.configInner input {
+.config input {
   width: 100%;
 }
-.configInner .value {
+.config .value {
   float: right;
 }
-.configFooter {
+.config {
   clear: both;
 }
 .selectableIcons {
@@ -273,13 +281,18 @@ h1 .ver {
   width: 1.75em;
 }
 
+.footer {
+  z-index: 9999;
+  position: fixed;
+  bottom: 0;
+}
         </style>
     </head>
     <body ng-controller="mainCtrl">
         <div class="buttons">
             <button class="iconBtn" ng-click="showConfig = true"><span class="fa fa-gear"/></button>
         </div>
-        <h1 class="title">Scrum Poker <span class="ver">###version###</h2></h1>
+        <h1 class="title">Scrum Poker <span class="ver">###version###</span></h1>
 
         <div id="myCards">
             <div class="pokerCardSm" ng-repeat="card in cards" ng-click="selectCard(card)" 
@@ -314,57 +327,100 @@ h1 .ver {
                 </li>
             </ul>
         </div>
-        <div class="configOuter" ng-show="showConfig">
-            <div class="configMiddle">
-                <div class="configInner">
+
+        <div class="dialogOuter" ng-show="showConfig">
+            <div class="dialogMiddle">
+                <div class="dialogInner config">
                     <h2>Config</h2>
-                    <label>Size of my cards: <span class="value">{{cfg.smSize}}</span></label> 
-                    <input type="range" min="1" max="128" ng-model="cfg.smSize" /> 
-                    <label>Minimum size of participants: <span class="value">{{cfg.lgMinSize}}</span></label> 
+
+                    <h3>Participant zone</h3>
+                    <label>Minimum size: <span class="value">{{cfg.lgMinSize}}</span></label> 
                     <input type="range" min="1" max="128" ng-model="cfg.lgMinSize" /> 
-                    <label>Maximum size of participants: <span class="value">{{cfg.lgMaxSize}}</span></label> 
+                    <label>Maximum size: <span class="value">{{cfg.lgMaxSize}}</span></label> 
                     <input type="range" min="1" max="128" ng-model="cfg.lgMaxSize" />
+
+                    <h3>My cards</h3>
+                    <label>Selectable card size: <span class="value">{{cfg.smSize}}</span></label> 
+                    <input type="range" min="1" max="128" ng-model="cfg.smSize" /> 
                     <div>
-                        <div class="pokerCardLg">
+                        <div class="pokerCardLg" title="Everyone sees this">
                             <div class="{{cfg.cardBack}}"></div>
                         </div>
-                        <label>Card back:</label>
+                        <label title="Everyone sees this">Card back:</label>
                         <select ng-model="iconCategory" ng-options="value as key for (key, value) in icons"></select>
                         <div class="selectableIcons">
                             <span ng-repeat="icon in iconCategory" class="{{icon.classes}}" ng-click="cfg.cardBack = icon.classes" title="{{icon.name}}"></span>
                         </div>
                     </div>
 
+                    <div>
+                        <input type="checkbox" ng-model="debug.enabled">Enable debug menu
+                    </div>
+
                     <div class="buttons">
                         <button class="iconBtn" ng-click="applyConfig()"><span class="fa fa-check"/></button>
                     </div>
-                    <div class="configFooter"/>
+                    <div class="configFooter"></div>
                 </div>
             </div>
         </div>
-        <div id="debug" class="info"></div><script src="//plus.google.com/hangouts/_/api/v1/hangout.js"></script>
+
+        <div class="dialogOuter" ng-show="debug.showData">
+            <div class="dialogMiddle">
+                <div class="dialogInner config">
+                    <h2>Debug</h2>
+                    <div class="buttons">
+                        <button class="iconBtn" ng-click="debug.enableData(false)"><span class="fa fa-check"/></button>
+                    </div>
+                    <div class="configFooter"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer" ng-show="debug.enabled">
+            <button ng-click="debug.addPeople()">Fake People</button>
+            <button ng-click="debug.enableData(true)">Show data</button>
+            <button ng-click="autoSizeMainList()">Resize</button>
+        </div>
+
+        <script src="//plus.google.com/hangouts/_/api/v1/hangout.js"></script>
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
         <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular.js"></script>
         <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular-animate.js"></script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js"></script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/js-yaml/3.0.2/js-yaml.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/velocity/1.1.0/velocity.min.js"></script>
         <script>
 
 function createDefaultState() {
 	return {
-		cardSelected: "None",
+		cardSelected: 'None',
 		cardHistory: [],
 		needBreak: false,
 		cardBack: 'cardBackDefault'
 	};
 }
 
+function rgbToHex(rgb) {
+	// http://stackoverflow.com/a/13070198
+	var a = rgb.split("(")[1].split(")")[0];
+	a = a.split(",");
+	var b = a.map(function(x){            //For each array element
+	    x = parseInt(x).toString(16);     //Convert to a base16 string
+	    return (x.length==1) ? "0"+x : x; //Add zero if we get only one character
+	});
+	b = "#"+b.join("");
+
+	return b;
+}
+
 var pokerApp = angular.module('scrumPokerHangout', ['ngAnimate']);
 
 pokerApp.controller('mainCtrl', function ($scope) {
+	pokerApp.debug = $scope;
 
-	//$scope.icons = {};
-	$scope.icons = {"default":[{"name":"Default","classes":"cardBackDefault"}],"Web Application Icons":[{"name":"Glass","classes":"fa fa-fw fa-glass"},{"name":"Music","classes":"fa fa-fw fa-music"},{"name":"Search","classes":"fa fa-fw fa-search"},{"name":"Envelope Outlined","classes":"fa fa-fw fa-envelope-o"},{"name":"Heart","classes":"fa fa-fw fa-heart"},{"name":"Star","classes":"fa fa-fw fa-star"},{"name":"Star Outlined","classes":"fa fa-fw fa-star-o"},{"name":"User","classes":"fa fa-fw fa-user"},{"name":"Film","classes":"fa fa-fw fa-film"},{"name":"Check","classes":"fa fa-fw fa-check"},{"name":"Times","classes":"fa fa-fw fa-times"},{"name":"Search Plus","classes":"fa fa-fw fa-search-plus"},{"name":"Search Minus","classes":"fa fa-fw fa-search-minus"},{"name":"Power Off","classes":"fa fa-fw fa-power-off"},{"name":"signal","classes":"fa fa-fw fa-signal"},{"name":"cog","classes":"fa fa-fw fa-cog"},{"name":"Trash Outlined","classes":"fa fa-fw fa-trash-o"},{"name":"home","classes":"fa fa-fw fa-home"},{"name":"Clock Outlined","classes":"fa fa-fw fa-clock-o"},{"name":"road","classes":"fa fa-fw fa-road"},{"name":"Download","classes":"fa fa-fw fa-download"},{"name":"inbox","classes":"fa fa-fw fa-inbox"},{"name":"refresh","classes":"fa fa-fw fa-refresh"},{"name":"lock","classes":"fa fa-fw fa-lock"},{"name":"flag","classes":"fa fa-fw fa-flag"},{"name":"headphones","classes":"fa fa-fw fa-headphones"},{"name":"volume-off","classes":"fa fa-fw fa-volume-off"},{"name":"volume-down","classes":"fa fa-fw fa-volume-down"},{"name":"volume-up","classes":"fa fa-fw fa-volume-up"},{"name":"qrcode","classes":"fa fa-fw fa-qrcode"},{"name":"barcode","classes":"fa fa-fw fa-barcode"},{"name":"tag","classes":"fa fa-fw fa-tag"},{"name":"tags","classes":"fa fa-fw fa-tags"},{"name":"book","classes":"fa fa-fw fa-book"},{"name":"bookmark","classes":"fa fa-fw fa-bookmark"},{"name":"print","classes":"fa fa-fw fa-print"},{"name":"camera","classes":"fa fa-fw fa-camera"},{"name":"Video Camera","classes":"fa fa-fw fa-video-camera"},{"name":"Picture Outlined","classes":"fa fa-fw fa-picture-o"},{"name":"pencil","classes":"fa fa-fw fa-pencil"},{"name":"map-marker","classes":"fa fa-fw fa-map-marker"},{"name":"adjust","classes":"fa fa-fw fa-adjust"},{"name":"tint","classes":"fa fa-fw fa-tint"},{"name":"Pencil Square Outlined","classes":"fa fa-fw fa-pencil-square-o"},{"name":"Share Square Outlined","classes":"fa fa-fw fa-share-square-o"},{"name":"Check Square Outlined","classes":"fa fa-fw fa-check-square-o"},{"name":"Arrows","classes":"fa fa-fw fa-arrows"},{"name":"Plus Circle","classes":"fa fa-fw fa-plus-circle"},{"name":"Minus Circle","classes":"fa fa-fw fa-minus-circle"},{"name":"Times Circle","classes":"fa fa-fw fa-times-circle"},{"name":"Check Circle","classes":"fa fa-fw fa-check-circle"},{"name":"Question Circle","classes":"fa fa-fw fa-question-circle"},{"name":"Info Circle","classes":"fa fa-fw fa-info-circle"},{"name":"Crosshairs","classes":"fa fa-fw fa-crosshairs"},{"name":"Times Circle Outlined","classes":"fa fa-fw fa-times-circle-o"},{"name":"Check Circle Outlined","classes":"fa fa-fw fa-check-circle-o"},{"name":"ban","classes":"fa fa-fw fa-ban"},{"name":"Share","classes":"fa fa-fw fa-share"},{"name":"plus","classes":"fa fa-fw fa-plus"},{"name":"minus","classes":"fa fa-fw fa-minus"}],"Text Editor Icons":[{"name":"th-large","classes":"fa fa-fw fa-th-large"},{"name":"th","classes":"fa fa-fw fa-th"},{"name":"th-list","classes":"fa fa-fw fa-th-list"},{"name":"File Outlined","classes":"fa fa-fw fa-file-o"},{"name":"Repeat","classes":"fa fa-fw fa-repeat"},{"name":"list-alt","classes":"fa fa-fw fa-list-alt"},{"name":"font","classes":"fa fa-fw fa-font"},{"name":"bold","classes":"fa fa-fw fa-bold"},{"name":"italic","classes":"fa fa-fw fa-italic"},{"name":"text-height","classes":"fa fa-fw fa-text-height"},{"name":"text-width","classes":"fa fa-fw fa-text-width"},{"name":"align-left","classes":"fa fa-fw fa-align-left"},{"name":"align-center","classes":"fa fa-fw fa-align-center"},{"name":"align-right","classes":"fa fa-fw fa-align-right"},{"name":"align-justify","classes":"fa fa-fw fa-align-justify"},{"name":"list","classes":"fa fa-fw fa-list"},{"name":"Outdent","classes":"fa fa-fw fa-outdent"},{"name":"Indent","classes":"fa fa-fw fa-indent"},{"name":"Link","classes":"fa fa-fw fa-link"},{"name":"Scissors","classes":"fa fa-fw fa-scissors"},{"name":"Files Outlined","classes":"fa fa-fw fa-files-o"},{"name":"Paperclip","classes":"fa fa-fw fa-paperclip"},{"name":"Floppy Outlined","classes":"fa fa-fw fa-floppy-o"},{"name":"list-ul","classes":"fa fa-fw fa-list-ul"},{"name":"list-ol","classes":"fa fa-fw fa-list-ol"},{"name":"Strikethrough","classes":"fa fa-fw fa-strikethrough"},{"name":"Underline","classes":"fa fa-fw fa-underline"},{"name":"table","classes":"fa fa-fw fa-table"},{"name":"Columns","classes":"fa fa-fw fa-columns"},{"name":"Undo","classes":"fa fa-fw fa-undo"},{"name":"Clipboard","classes":"fa fa-fw fa-clipboard"},{"name":"File Text Outlined","classes":"fa fa-fw fa-file-text-o"},{"name":"Chain Broken","classes":"fa fa-fw fa-chain-broken"},{"name":"superscript","classes":"fa fa-fw fa-superscript"},{"name":"subscript","classes":"fa fa-fw fa-subscript"},{"name":"eraser","classes":"fa fa-fw fa-eraser"},{"name":"File","classes":"fa fa-fw fa-file"},{"name":"File Text","classes":"fa fa-fw fa-file-text"},{"name":"header","classes":"fa fa-fw fa-header"},{"name":"paragraph","classes":"fa fa-fw fa-paragraph"}],"Spinner Icons":[{"name":"cog","classes":"fa fa-fw fa-cog"},{"name":"refresh","classes":"fa fa-fw fa-refresh"},{"name":"Spinner","classes":"fa fa-fw fa-spinner"},{"name":"Circle Outlined Notched","classes":"fa fa-fw fa-circle-o-notch"}],"File Type Icons":[{"name":"File Outlined","classes":"fa fa-fw fa-file-o"},{"name":"File Text Outlined","classes":"fa fa-fw fa-file-text-o"},{"name":"File","classes":"fa fa-fw fa-file"},{"name":"File Text","classes":"fa fa-fw fa-file-text"},{"name":"PDF File Outlined","classes":"fa fa-fw fa-file-pdf-o"},{"name":"Word File Outlined","classes":"fa fa-fw fa-file-word-o"},{"name":"Excel File Outlined","classes":"fa fa-fw fa-file-excel-o"},{"name":"Powerpoint File Outlined","classes":"fa fa-fw fa-file-powerpoint-o"},{"name":"Image File Outlined","classes":"fa fa-fw fa-file-image-o"},{"name":"Archive File Outlined","classes":"fa fa-fw fa-file-archive-o"},{"name":"Audio File Outlined","classes":"fa fa-fw fa-file-audio-o"},{"name":"Video File Outlined","classes":"fa fa-fw fa-file-video-o"},{"name":"Code File Outlined","classes":"fa fa-fw fa-file-code-o"}],"Directional Icons":[{"name":"Arrow Circle Outlined Down","classes":"fa fa-fw fa-arrow-circle-o-down"},{"name":"Arrow Circle Outlined Up","classes":"fa fa-fw fa-arrow-circle-o-up"},{"name":"Arrows","classes":"fa fa-fw fa-arrows"},{"name":"chevron-left","classes":"fa fa-fw fa-chevron-left"},{"name":"chevron-right","classes":"fa fa-fw fa-chevron-right"},{"name":"arrow-left","classes":"fa fa-fw fa-arrow-left"},{"name":"arrow-right","classes":"fa fa-fw fa-arrow-right"},{"name":"arrow-up","classes":"fa fa-fw fa-arrow-up"},{"name":"arrow-down","classes":"fa fa-fw fa-arrow-down"},{"name":"chevron-up","classes":"fa fa-fw fa-chevron-up"},{"name":"chevron-down","classes":"fa fa-fw fa-chevron-down"},{"name":"Arrows Vertical","classes":"fa fa-fw fa-arrows-v"},{"name":"Arrows Horizontal","classes":"fa fa-fw fa-arrows-h"},{"name":"Hand Outlined Right","classes":"fa fa-fw fa-hand-o-right"},{"name":"Hand Outlined Left","classes":"fa fa-fw fa-hand-o-left"},{"name":"Hand Outlined Up","classes":"fa fa-fw fa-hand-o-up"},{"name":"Hand Outlined Down","classes":"fa fa-fw fa-hand-o-down"},{"name":"Arrow Circle Left","classes":"fa fa-fw fa-arrow-circle-left"},{"name":"Arrow Circle Right","classes":"fa fa-fw fa-arrow-circle-right"},{"name":"Arrow Circle Up","classes":"fa fa-fw fa-arrow-circle-up"},{"name":"Arrow Circle Down","classes":"fa fa-fw fa-arrow-circle-down"},{"name":"Arrows Alt","classes":"fa fa-fw fa-arrows-alt"},{"name":"Caret Down","classes":"fa fa-fw fa-caret-down"},{"name":"Caret Up","classes":"fa fa-fw fa-caret-up"},{"name":"Caret Left","classes":"fa fa-fw fa-caret-left"},{"name":"Caret Right","classes":"fa fa-fw fa-caret-right"},{"name":"Angle Double Left","classes":"fa fa-fw fa-angle-double-left"},{"name":"Angle Double Right","classes":"fa fa-fw fa-angle-double-right"},{"name":"Angle Double Up","classes":"fa fa-fw fa-angle-double-up"},{"name":"Angle Double Down","classes":"fa fa-fw fa-angle-double-down"},{"name":"angle-left","classes":"fa fa-fw fa-angle-left"},{"name":"angle-right","classes":"fa fa-fw fa-angle-right"},{"name":"angle-up","classes":"fa fa-fw fa-angle-up"},{"name":"angle-down","classes":"fa fa-fw fa-angle-down"},{"name":"Chevron Circle Left","classes":"fa fa-fw fa-chevron-circle-left"},{"name":"Chevron Circle Right","classes":"fa fa-fw fa-chevron-circle-right"},{"name":"Chevron Circle Up","classes":"fa fa-fw fa-chevron-circle-up"},{"name":"Chevron Circle Down","classes":"fa fa-fw fa-chevron-circle-down"},{"name":"Caret Square Outlined Down","classes":"fa fa-fw fa-caret-square-o-down"},{"name":"Caret Square Outlined Up","classes":"fa fa-fw fa-caret-square-o-up"},{"name":"Caret Square Outlined Right","classes":"fa fa-fw fa-caret-square-o-right"},{"name":"Long Arrow Down","classes":"fa fa-fw fa-long-arrow-down"},{"name":"Long Arrow Up","classes":"fa fa-fw fa-long-arrow-up"},{"name":"Long Arrow Left","classes":"fa fa-fw fa-long-arrow-left"},{"name":"Long Arrow Right","classes":"fa fa-fw fa-long-arrow-right"},{"name":"Arrow Circle Outlined Right","classes":"fa fa-fw fa-arrow-circle-o-right"},{"name":"Arrow Circle Outlined Left","classes":"fa fa-fw fa-arrow-circle-o-left"},{"name":"Caret Square Outlined Left","classes":"fa fa-fw fa-caret-square-o-left"}],"Video Player Icons":[{"name":"Play Circle Outlined","classes":"fa fa-fw fa-play-circle-o"},{"name":"step-backward","classes":"fa fa-fw fa-step-backward"},{"name":"fast-backward","classes":"fa fa-fw fa-fast-backward"},{"name":"backward","classes":"fa fa-fw fa-backward"},{"name":"play","classes":"fa fa-fw fa-play"},{"name":"pause","classes":"fa fa-fw fa-pause"},{"name":"stop","classes":"fa fa-fw fa-stop"},{"name":"forward","classes":"fa fa-fw fa-forward"},{"name":"fast-forward","classes":"fa fa-fw fa-fast-forward"},{"name":"step-forward","classes":"fa fa-fw fa-step-forward"},{"name":"eject","classes":"fa fa-fw fa-eject"},{"name":"Expand","classes":"fa fa-fw fa-expand"},{"name":"Compress","classes":"fa fa-fw fa-compress"},{"name":"Arrows Alt","classes":"fa fa-fw fa-arrows-alt"},{"name":"Play Circle","classes":"fa fa-fw fa-play-circle"},{"name":"YouTube Play","classes":"fa fa-fw fa-youtube-play"}],"Form Control Icons":[{"name":"Check Square Outlined","classes":"fa fa-fw fa-check-square-o"},{"name":"Square Outlined","classes":"fa fa-fw fa-square-o"},{"name":"Square","classes":"fa fa-fw fa-square"},{"name":"Plus Square","classes":"fa fa-fw fa-plus-square"},{"name":"Circle Outlined","classes":"fa fa-fw fa-circle-o"},{"name":"Circle","classes":"fa fa-fw fa-circle"},{"name":"Minus Square","classes":"fa fa-fw fa-minus-square"},{"name":"Minus Square Outlined","classes":"fa fa-fw fa-minus-square-o"},{"name":"Check Square","classes":"fa fa-fw fa-check-square"},{"name":"Dot Circle O","classes":"fa fa-fw fa-dot-circle-o"},{"name":"Plus Square Outlined","classes":"fa fa-fw fa-plus-square-o"}],"Web Application Icons 2":[{"name":"asterisk","classes":"fa fa-fw fa-asterisk"},{"name":"Exclamation Circle","classes":"fa fa-fw fa-exclamation-circle"},{"name":"gift","classes":"fa fa-fw fa-gift"},{"name":"leaf","classes":"fa fa-fw fa-leaf"},{"name":"fire","classes":"fa fa-fw fa-fire"},{"name":"Eye","classes":"fa fa-fw fa-eye"},{"name":"Eye Slash","classes":"fa fa-fw fa-eye-slash"},{"name":"Exclamation Triangle","classes":"fa fa-fw fa-exclamation-triangle"},{"name":"plane","classes":"fa fa-fw fa-plane"},{"name":"calendar","classes":"fa fa-fw fa-calendar"},{"name":"random","classes":"fa fa-fw fa-random"},{"name":"comment","classes":"fa fa-fw fa-comment"},{"name":"magnet","classes":"fa fa-fw fa-magnet"},{"name":"retweet","classes":"fa fa-fw fa-retweet"},{"name":"shopping-cart","classes":"fa fa-fw fa-shopping-cart"},{"name":"Folder","classes":"fa fa-fw fa-folder"},{"name":"Folder Open","classes":"fa fa-fw fa-folder-open"},{"name":"Arrows Vertical","classes":"fa fa-fw fa-arrows-v"},{"name":"Arrows Horizontal","classes":"fa fa-fw fa-arrows-h"},{"name":"Bar Chart","classes":"fa fa-fw fa-bar-chart"},{"name":"camera-retro","classes":"fa fa-fw fa-camera-retro"},{"name":"key","classes":"fa fa-fw fa-key"},{"name":"cogs","classes":"fa fa-fw fa-cogs"},{"name":"comments","classes":"fa fa-fw fa-comments"},{"name":"Thumbs Up Outlined","classes":"fa fa-fw fa-thumbs-o-up"},{"name":"Thumbs Down Outlined","classes":"fa fa-fw fa-thumbs-o-down"},{"name":"star-half","classes":"fa fa-fw fa-star-half"},{"name":"Heart Outlined","classes":"fa fa-fw fa-heart-o"},{"name":"Sign Out","classes":"fa fa-fw fa-sign-out"},{"name":"Thumb Tack","classes":"fa fa-fw fa-thumb-tack"},{"name":"External Link","classes":"fa fa-fw fa-external-link"},{"name":"Sign In","classes":"fa fa-fw fa-sign-in"},{"name":"trophy","classes":"fa fa-fw fa-trophy"},{"name":"Upload","classes":"fa fa-fw fa-upload"},{"name":"Lemon Outlined","classes":"fa fa-fw fa-lemon-o"},{"name":"Phone","classes":"fa fa-fw fa-phone"},{"name":"Square Outlined","classes":"fa fa-fw fa-square-o"},{"name":"Bookmark Outlined","classes":"fa fa-fw fa-bookmark-o"},{"name":"Phone Square","classes":"fa fa-fw fa-phone-square"},{"name":"unlock","classes":"fa fa-fw fa-unlock"},{"name":"credit-card","classes":"fa fa-fw fa-credit-card"},{"name":"rss","classes":"fa fa-fw fa-rss"},{"name":"HDD","classes":"fa fa-fw fa-hdd-o"},{"name":"bullhorn","classes":"fa fa-fw fa-bullhorn"},{"name":"bell","classes":"fa fa-fw fa-bell"},{"name":"certificate","classes":"fa fa-fw fa-certificate"},{"name":"Globe","classes":"fa fa-fw fa-globe"},{"name":"Wrench","classes":"fa fa-fw fa-wrench"},{"name":"Tasks","classes":"fa fa-fw fa-tasks"},{"name":"Filter","classes":"fa fa-fw fa-filter"},{"name":"Briefcase","classes":"fa fa-fw fa-briefcase"},{"name":"Users","classes":"fa fa-fw fa-users"},{"name":"Cloud","classes":"fa fa-fw fa-cloud"},{"name":"Flask","classes":"fa fa-fw fa-flask"},{"name":"Square","classes":"fa fa-fw fa-square"},{"name":"Bars","classes":"fa fa-fw fa-bars"},{"name":"magic","classes":"fa fa-fw fa-magic"},{"name":"truck","classes":"fa fa-fw fa-truck"},{"name":"Money","classes":"fa fa-fw fa-money"},{"name":"Sort","classes":"fa fa-fw fa-sort"}],"Chart Icons":[{"name":"Bar Chart","classes":"fa fa-fw fa-bar-chart"},{"name":"Area Chart","classes":"fa fa-fw fa-area-chart"},{"name":"Pie Chart","classes":"fa fa-fw fa-pie-chart"},{"name":"Line Chart","classes":"fa fa-fw fa-line-chart"}],"Brand Icons":[{"name":"Twitter Square","classes":"fa fa-fw fa-twitter-square"},{"name":"Facebook Square","classes":"fa fa-fw fa-facebook-square"},{"name":"LinkedIn Square","classes":"fa fa-fw fa-linkedin-square"},{"name":"GitHub Square","classes":"fa fa-fw fa-github-square"},{"name":"Twitter","classes":"fa fa-fw fa-twitter"},{"name":"Facebook","classes":"fa fa-fw fa-facebook"},{"name":"GitHub","classes":"fa fa-fw fa-github"},{"name":"Pinterest","classes":"fa fa-fw fa-pinterest"},{"name":"Pinterest Square","classes":"fa fa-fw fa-pinterest-square"},{"name":"Google Plus Square","classes":"fa fa-fw fa-google-plus-square"},{"name":"Google Plus","classes":"fa fa-fw fa-google-plus"},{"name":"LinkedIn","classes":"fa fa-fw fa-linkedin"},{"name":"GitHub Alt","classes":"fa fa-fw fa-github-alt"},{"name":"MaxCDN","classes":"fa fa-fw fa-maxcdn"},{"name":"HTML 5 Logo","classes":"fa fa-fw fa-html5"},{"name":"CSS 3 Logo","classes":"fa fa-fw fa-css3"},{"name":"Bitcoin (BTC)","classes":"fa fa-fw fa-btc"},{"name":"YouTube Square","classes":"fa fa-fw fa-youtube-square"},{"name":"YouTube","classes":"fa fa-fw fa-youtube"},{"name":"Xing","classes":"fa fa-fw fa-xing"},{"name":"Xing Square","classes":"fa fa-fw fa-xing-square"},{"name":"YouTube Play","classes":"fa fa-fw fa-youtube-play"},{"name":"Dropbox","classes":"fa fa-fw fa-dropbox"},{"name":"Stack Overflow","classes":"fa fa-fw fa-stack-overflow"},{"name":"Instagram","classes":"fa fa-fw fa-instagram"},{"name":"Flickr","classes":"fa fa-fw fa-flickr"},{"name":"App.net","classes":"fa fa-fw fa-adn"},{"name":"Bitbucket","classes":"fa fa-fw fa-bitbucket"},{"name":"Bitbucket Square","classes":"fa fa-fw fa-bitbucket-square"},{"name":"Tumblr","classes":"fa fa-fw fa-tumblr"},{"name":"Tumblr Square","classes":"fa fa-fw fa-tumblr-square"},{"name":"Apple","classes":"fa fa-fw fa-apple"},{"name":"Windows","classes":"fa fa-fw fa-windows"},{"name":"Android","classes":"fa fa-fw fa-android"},{"name":"Linux","classes":"fa fa-fw fa-linux"},{"name":"Dribbble","classes":"fa fa-fw fa-dribbble"},{"name":"Skype","classes":"fa fa-fw fa-skype"},{"name":"Foursquare","classes":"fa fa-fw fa-foursquare"},{"name":"Trello","classes":"fa fa-fw fa-trello"},{"name":"Gittip","classes":"fa fa-fw fa-gittip"},{"name":"VK","classes":"fa fa-fw fa-vk"},{"name":"Weibo","classes":"fa fa-fw fa-weibo"},{"name":"Renren","classes":"fa fa-fw fa-renren"},{"name":"Pagelines","classes":"fa fa-fw fa-pagelines"},{"name":"Stack Exchange","classes":"fa fa-fw fa-stack-exchange"},{"name":"Vimeo Square","classes":"fa fa-fw fa-vimeo-square"},{"name":"Slack Logo","classes":"fa fa-fw fa-slack"},{"name":"Wordpress Logo","classes":"fa fa-fw fa-wordpress"},{"name":"OpenID","classes":"fa fa-fw fa-openid"},{"name":"Yahoo Logo","classes":"fa fa-fw fa-yahoo"},{"name":"Google Logo","classes":"fa fa-fw fa-google"},{"name":"reddit Logo","classes":"fa fa-fw fa-reddit"},{"name":"reddit Square","classes":"fa fa-fw fa-reddit-square"},{"name":"StumbleUpon Circle","classes":"fa fa-fw fa-stumbleupon-circle"},{"name":"StumbleUpon Logo","classes":"fa fa-fw fa-stumbleupon"},{"name":"Delicious Logo","classes":"fa fa-fw fa-delicious"},{"name":"Digg Logo","classes":"fa fa-fw fa-digg"},{"name":"Pied Piper Logo","classes":"fa fa-fw fa-pied-piper"},{"name":"Pied Piper Alternate Logo","classes":"fa fa-fw fa-pied-piper-alt"},{"name":"Drupal Logo","classes":"fa fa-fw fa-drupal"}],"Payment Icons":[{"name":"credit-card","classes":"fa fa-fw fa-credit-card"},{"name":"Paypal","classes":"fa fa-fw fa-paypal"},{"name":"Goole Wallet","classes":"fa fa-fw fa-google-wallet"},{"name":"Visa Credit Card","classes":"fa fa-fw fa-cc-visa"},{"name":"MasterCard Credit Card","classes":"fa fa-fw fa-cc-mastercard"},{"name":"Discover Credit Card","classes":"fa fa-fw fa-cc-discover"},{"name":"American Express Credit Card","classes":"fa fa-fw fa-cc-amex"},{"name":"Paypal Credit Card","classes":"fa fa-fw fa-cc-paypal"},{"name":"Stripe Credit Card","classes":"fa fa-fw fa-cc-stripe"}],"Currency Icons":[{"name":"Money","classes":"fa fa-fw fa-money"},{"name":"Euro (EUR)","classes":"fa fa-fw fa-eur"},{"name":"GBP","classes":"fa fa-fw fa-gbp"},{"name":"US Dollar","classes":"fa fa-fw fa-usd"},{"name":"Indian Rupee (INR)","classes":"fa fa-fw fa-inr"},{"name":"Japanese Yen (JPY)","classes":"fa fa-fw fa-jpy"},{"name":"Russian Ruble (RUB)","classes":"fa fa-fw fa-rub"},{"name":"Korean Won (KRW)","classes":"fa fa-fw fa-krw"},{"name":"Bitcoin (BTC)","classes":"fa fa-fw fa-btc"},{"name":"Turkish Lira (TRY)","classes":"fa fa-fw fa-try"},{"name":"Shekel (ILS)","classes":"fa fa-fw fa-ils"}],"Web Application Icons 3":[{"name":"Sort Descending","classes":"fa fa-fw fa-sort-desc"},{"name":"Sort Ascending","classes":"fa fa-fw fa-sort-asc"},{"name":"Envelope","classes":"fa fa-fw fa-envelope"},{"name":"Gavel","classes":"fa fa-fw fa-gavel"},{"name":"Tachometer","classes":"fa fa-fw fa-tachometer"},{"name":"comment-o","classes":"fa fa-fw fa-comment-o"},{"name":"comments-o","classes":"fa fa-fw fa-comments-o"},{"name":"Lightning Bolt","classes":"fa fa-fw fa-bolt"},{"name":"Sitemap","classes":"fa fa-fw fa-sitemap"},{"name":"Umbrella","classes":"fa fa-fw fa-umbrella"},{"name":"Lightbulb Outlined","classes":"fa fa-fw fa-lightbulb-o"},{"name":"Exchange","classes":"fa fa-fw fa-exchange"},{"name":"Cloud Download","classes":"fa fa-fw fa-cloud-download"},{"name":"Cloud Upload","classes":"fa fa-fw fa-cloud-upload"},{"name":"Suitcase","classes":"fa fa-fw fa-suitcase"},{"name":"Bell Outlined","classes":"fa fa-fw fa-bell-o"},{"name":"Coffee","classes":"fa fa-fw fa-coffee"},{"name":"Cutlery","classes":"fa fa-fw fa-cutlery"},{"name":"Building Outlined","classes":"fa fa-fw fa-building-o"},{"name":"fighter-jet","classes":"fa fa-fw fa-fighter-jet"},{"name":"beer","classes":"fa fa-fw fa-beer"},{"name":"Plus Square","classes":"fa fa-fw fa-plus-square"},{"name":"Desktop","classes":"fa fa-fw fa-desktop"},{"name":"Laptop","classes":"fa fa-fw fa-laptop"},{"name":"tablet","classes":"fa fa-fw fa-tablet"},{"name":"Mobile Phone","classes":"fa fa-fw fa-mobile"},{"name":"Circle Outlined","classes":"fa fa-fw fa-circle-o"},{"name":"quote-left","classes":"fa fa-fw fa-quote-left"},{"name":"quote-right","classes":"fa fa-fw fa-quote-right"},{"name":"Spinner","classes":"fa fa-fw fa-spinner"},{"name":"Circle","classes":"fa fa-fw fa-circle"},{"name":"Reply","classes":"fa fa-fw fa-reply"},{"name":"Folder Outlined","classes":"fa fa-fw fa-folder-o"},{"name":"Folder Open Outlined","classes":"fa fa-fw fa-folder-open-o"},{"name":"Smile Outlined","classes":"fa fa-fw fa-smile-o"},{"name":"Frown Outlined","classes":"fa fa-fw fa-frown-o"},{"name":"Meh Outlined","classes":"fa fa-fw fa-meh-o"},{"name":"Gamepad","classes":"fa fa-fw fa-gamepad"},{"name":"Keyboard Outlined","classes":"fa fa-fw fa-keyboard-o"},{"name":"Flag Outlined","classes":"fa fa-fw fa-flag-o"},{"name":"flag-checkered","classes":"fa fa-fw fa-flag-checkered"},{"name":"Terminal","classes":"fa fa-fw fa-terminal"},{"name":"Code","classes":"fa fa-fw fa-code"},{"name":"reply-all","classes":"fa fa-fw fa-reply-all"},{"name":"Star Half Outlined","classes":"fa fa-fw fa-star-half-o"},{"name":"location-arrow","classes":"fa fa-fw fa-location-arrow"},{"name":"crop","classes":"fa fa-fw fa-crop"},{"name":"code-fork","classes":"fa fa-fw fa-code-fork"},{"name":"Question","classes":"fa fa-fw fa-question"},{"name":"Info","classes":"fa fa-fw fa-info"},{"name":"exclamation","classes":"fa fa-fw fa-exclamation"},{"name":"eraser","classes":"fa fa-fw fa-eraser"},{"name":"Puzzle Piece","classes":"fa fa-fw fa-puzzle-piece"},{"name":"microphone","classes":"fa fa-fw fa-microphone"},{"name":"Microphone Slash","classes":"fa fa-fw fa-microphone-slash"},{"name":"shield","classes":"fa fa-fw fa-shield"},{"name":"calendar-o","classes":"fa fa-fw fa-calendar-o"},{"name":"fire-extinguisher","classes":"fa fa-fw fa-fire-extinguisher"},{"name":"rocket","classes":"fa fa-fw fa-rocket"},{"name":"Anchor","classes":"fa fa-fw fa-anchor"}],"Medical Icons":[{"name":"user-md","classes":"fa fa-fw fa-user-md"},{"name":"Stethoscope","classes":"fa fa-fw fa-stethoscope"},{"name":"hospital Outlined","classes":"fa fa-fw fa-hospital-o"},{"name":"ambulance","classes":"fa fa-fw fa-ambulance"},{"name":"medkit","classes":"fa fa-fw fa-medkit"},{"name":"H Square","classes":"fa fa-fw fa-h-square"},{"name":"Plus Square","classes":"fa fa-fw fa-plus-square"},{"name":"Wheelchair","classes":"fa fa-fw fa-wheelchair"}],"Web Application Icons 4":[{"name":"Unlock Alt","classes":"fa fa-fw fa-unlock-alt"},{"name":"Bullseye","classes":"fa fa-fw fa-bullseye"},{"name":"Ellipsis Horizontal","classes":"fa fa-fw fa-ellipsis-h"},{"name":"Ellipsis Vertical","classes":"fa fa-fw fa-ellipsis-v"},{"name":"RSS Square","classes":"fa fa-fw fa-rss-square"},{"name":"Ticket","classes":"fa fa-fw fa-ticket"},{"name":"Minus Square","classes":"fa fa-fw fa-minus-square"},{"name":"Minus Square Outlined","classes":"fa fa-fw fa-minus-square-o"},{"name":"Level Up","classes":"fa fa-fw fa-level-up"},{"name":"Level Down","classes":"fa fa-fw fa-level-down"},{"name":"Check Square","classes":"fa fa-fw fa-check-square"},{"name":"Pencil Square","classes":"fa fa-fw fa-pencil-square"},{"name":"External Link Square","classes":"fa fa-fw fa-external-link-square"},{"name":"Share Square","classes":"fa fa-fw fa-share-square"},{"name":"Compass","classes":"fa fa-fw fa-compass"},{"name":"Caret Square Outlined Down","classes":"fa fa-fw fa-caret-square-o-down"},{"name":"Caret Square Outlined Up","classes":"fa fa-fw fa-caret-square-o-up"},{"name":"Caret Square Outlined Right","classes":"fa fa-fw fa-caret-square-o-right"},{"name":"Sort Alpha Ascending","classes":"fa fa-fw fa-sort-alpha-asc"},{"name":"Sort Alpha Descending","classes":"fa fa-fw fa-sort-alpha-desc"},{"name":"Sort Amount Ascending","classes":"fa fa-fw fa-sort-amount-asc"},{"name":"Sort Amount Descending","classes":"fa fa-fw fa-sort-amount-desc"},{"name":"Sort Numeric Ascending","classes":"fa fa-fw fa-sort-numeric-asc"},{"name":"Sort Numeric Descending","classes":"fa fa-fw fa-sort-numeric-desc"},{"name":"thumbs-up","classes":"fa fa-fw fa-thumbs-up"},{"name":"thumbs-down","classes":"fa fa-fw fa-thumbs-down"},{"name":"Female","classes":"fa fa-fw fa-female"},{"name":"Male","classes":"fa fa-fw fa-male"},{"name":"Sun Outlined","classes":"fa fa-fw fa-sun-o"},{"name":"Moon Outlined","classes":"fa fa-fw fa-moon-o"},{"name":"Archive","classes":"fa fa-fw fa-archive"},{"name":"Bug","classes":"fa fa-fw fa-bug"},{"name":"Caret Square Outlined Left","classes":"fa fa-fw fa-caret-square-o-left"},{"name":"Dot Circle O","classes":"fa fa-fw fa-dot-circle-o"},{"name":"Wheelchair","classes":"fa fa-fw fa-wheelchair"},{"name":"Plus Square Outlined","classes":"fa fa-fw fa-plus-square-o"},{"name":"Space Shuttle","classes":"fa fa-fw fa-space-shuttle"},{"name":"Envelope Square","classes":"fa fa-fw fa-envelope-square"},{"name":"University","classes":"fa fa-fw fa-university"},{"name":"Graduation Cap","classes":"fa fa-fw fa-graduation-cap"},{"name":"Language","classes":"fa fa-fw fa-language"},{"name":"Fax","classes":"fa fa-fw fa-fax"},{"name":"Building","classes":"fa fa-fw fa-building"},{"name":"Child","classes":"fa fa-fw fa-child"},{"name":"Paw","classes":"fa fa-fw fa-paw"},{"name":"spoon","classes":"fa fa-fw fa-spoon"},{"name":"Cube","classes":"fa fa-fw fa-cube"},{"name":"Cubes","classes":"fa fa-fw fa-cubes"},{"name":"Recycle","classes":"fa fa-fw fa-recycle"},{"name":"Car","classes":"fa fa-fw fa-car"},{"name":"Taxi","classes":"fa fa-fw fa-taxi"},{"name":"Tree","classes":"fa fa-fw fa-tree"},{"name":"Database","classes":"fa fa-fw fa-database"},{"name":"PDF File Outlined","classes":"fa fa-fw fa-file-pdf-o"},{"name":"Word File Outlined","classes":"fa fa-fw fa-file-word-o"},{"name":"Excel File Outlined","classes":"fa fa-fw fa-file-excel-o"},{"name":"Powerpoint File Outlined","classes":"fa fa-fw fa-file-powerpoint-o"},{"name":"Image File Outlined","classes":"fa fa-fw fa-file-image-o"},{"name":"Archive File Outlined","classes":"fa fa-fw fa-file-archive-o"},{"name":"Audio File Outlined","classes":"fa fa-fw fa-file-audio-o"}],"Brand Icons 2":[{"name":"Joomla Logo","classes":"fa fa-fw fa-joomla"},{"name":"Behance","classes":"fa fa-fw fa-behance"},{"name":"Behance Square","classes":"fa fa-fw fa-behance-square"},{"name":"Steam","classes":"fa fa-fw fa-steam"},{"name":"Steam Square","classes":"fa fa-fw fa-steam-square"},{"name":"Spotify","classes":"fa fa-fw fa-spotify"},{"name":"deviantART","classes":"fa fa-fw fa-deviantart"},{"name":"SoundCloud","classes":"fa fa-fw fa-soundcloud"},{"name":"Vine","classes":"fa fa-fw fa-vine"},{"name":"Codepen","classes":"fa fa-fw fa-codepen"},{"name":"jsFiddle","classes":"fa fa-fw fa-jsfiddle"},{"name":"Rebel Alliance","classes":"fa fa-fw fa-rebel"},{"name":"Galactic Empire","classes":"fa fa-fw fa-empire"},{"name":"Git Square","classes":"fa fa-fw fa-git-square"},{"name":"Git","classes":"fa fa-fw fa-git"},{"name":"Hacker News","classes":"fa fa-fw fa-hacker-news"},{"name":"Tencent Weibo","classes":"fa fa-fw fa-tencent-weibo"},{"name":"QQ","classes":"fa fa-fw fa-qq"},{"name":"Weixin (WeChat)","classes":"fa fa-fw fa-weixin"},{"name":"Share Alt","classes":"fa fa-fw fa-share-alt"},{"name":"Share Alt Square","classes":"fa fa-fw fa-share-alt-square"},{"name":"Slideshare","classes":"fa fa-fw fa-slideshare"},{"name":"Twitch","classes":"fa fa-fw fa-twitch"},{"name":"Yelp","classes":"fa fa-fw fa-yelp"},{"name":"Paypal","classes":"fa fa-fw fa-paypal"},{"name":"Goole Wallet","classes":"fa fa-fw fa-google-wallet"},{"name":"Visa Credit Card","classes":"fa fa-fw fa-cc-visa"},{"name":"MasterCard Credit Card","classes":"fa fa-fw fa-cc-mastercard"},{"name":"Discover Credit Card","classes":"fa fa-fw fa-cc-discover"},{"name":"American Express Credit Card","classes":"fa fa-fw fa-cc-amex"},{"name":"Paypal Credit Card","classes":"fa fa-fw fa-cc-paypal"},{"name":"Stripe Credit Card","classes":"fa fa-fw fa-cc-stripe"},{"name":"last.fm","classes":"fa fa-fw fa-lastfm"},{"name":"last.fm Square","classes":"fa fa-fw fa-lastfm-square"},{"name":"ioxhost","classes":"fa fa-fw fa-ioxhost"},{"name":"AngelList","classes":"fa fa-fw fa-angellist"},{"name":"meanpath","classes":"fa fa-fw fa-meanpath"}],"Web Application Icons 5":[{"name":"Video File Outlined","classes":"fa fa-fw fa-file-video-o"},{"name":"Code File Outlined","classes":"fa fa-fw fa-file-code-o"},{"name":"Life Ring","classes":"fa fa-fw fa-life-ring"},{"name":"Circle Outlined Notched","classes":"fa fa-fw fa-circle-o-notch"},{"name":"Paper Plane","classes":"fa fa-fw fa-paper-plane"},{"name":"Paper Plane Outlined","classes":"fa fa-fw fa-paper-plane-o"},{"name":"History","classes":"fa fa-fw fa-history"},{"name":"Circle Outlined Thin","classes":"fa fa-fw fa-circle-thin"},{"name":"Sliders","classes":"fa fa-fw fa-sliders"},{"name":"Share Alt","classes":"fa fa-fw fa-share-alt"},{"name":"Share Alt Square","classes":"fa fa-fw fa-share-alt-square"},{"name":"Bomb","classes":"fa fa-fw fa-bomb"},{"name":"Futbol Outlined","classes":"fa fa-fw fa-futbol-o"},{"name":"TTY","classes":"fa fa-fw fa-tty"},{"name":"Binoculars","classes":"fa fa-fw fa-binoculars"},{"name":"Plug","classes":"fa fa-fw fa-plug"},{"name":"Newspaper Outlined","classes":"fa fa-fw fa-newspaper-o"},{"name":"WiFi","classes":"fa fa-fw fa-wifi"},{"name":"Calculator","classes":"fa fa-fw fa-calculator"},{"name":"Bell Slash","classes":"fa fa-fw fa-bell-slash"},{"name":"Bell Slash Outlined","classes":"fa fa-fw fa-bell-slash-o"},{"name":"Trash","classes":"fa fa-fw fa-trash"},{"name":"Copyright","classes":"fa fa-fw fa-copyright"},{"name":"At","classes":"fa fa-fw fa-at"},{"name":"Eyedropper","classes":"fa fa-fw fa-eyedropper"},{"name":"Paint Brush","classes":"fa fa-fw fa-paint-brush"},{"name":"Birthday Cake","classes":"fa fa-fw fa-birthday-cake"},{"name":"Area Chart","classes":"fa fa-fw fa-area-chart"},{"name":"Pie Chart","classes":"fa fa-fw fa-pie-chart"},{"name":"Line Chart","classes":"fa fa-fw fa-line-chart"},{"name":"Toggle Off","classes":"fa fa-fw fa-toggle-off"},{"name":"Toggle On","classes":"fa fa-fw fa-toggle-on"},{"name":"Bicycle","classes":"fa fa-fw fa-bicycle"},{"name":"Bus","classes":"fa fa-fw fa-bus"},{"name":"Closed Captions","classes":"fa fa-fw fa-cc"}]};
+	$scope.icons = {};
+	$scope.icons = {"default":[{"name":"Default","classes":"cardBackDefault"}],"Web Application Icons":[{"name":"Glass","classes":"fa fa-fw fa-glass"},{"name":"Music","classes":"fa fa-fw fa-music"},{"name":"Search","classes":"fa fa-fw fa-search"},{"name":"Envelope Outlined","classes":"fa fa-fw fa-envelope-o"},{"name":"Heart","classes":"fa fa-fw fa-heart"},{"name":"Star","classes":"fa fa-fw fa-star"},{"name":"Star Outlined","classes":"fa fa-fw fa-star-o"},{"name":"User","classes":"fa fa-fw fa-user"},{"name":"Film","classes":"fa fa-fw fa-film"},{"name":"Check","classes":"fa fa-fw fa-check"},{"name":"Times","classes":"fa fa-fw fa-times"},{"name":"Search Plus","classes":"fa fa-fw fa-search-plus"},{"name":"Search Minus","classes":"fa fa-fw fa-search-minus"},{"name":"Power Off","classes":"fa fa-fw fa-power-off"},{"name":"signal","classes":"fa fa-fw fa-signal"},{"name":"cog","classes":"fa fa-fw fa-cog"},{"name":"Trash Outlined","classes":"fa fa-fw fa-trash-o"},{"name":"home","classes":"fa fa-fw fa-home"},{"name":"Clock Outlined","classes":"fa fa-fw fa-clock-o"},{"name":"road","classes":"fa fa-fw fa-road"},{"name":"Download","classes":"fa fa-fw fa-download"},{"name":"inbox","classes":"fa fa-fw fa-inbox"},{"name":"refresh","classes":"fa fa-fw fa-refresh"},{"name":"lock","classes":"fa fa-fw fa-lock"},{"name":"flag","classes":"fa fa-fw fa-flag"},{"name":"headphones","classes":"fa fa-fw fa-headphones"},{"name":"volume-off","classes":"fa fa-fw fa-volume-off"},{"name":"volume-down","classes":"fa fa-fw fa-volume-down"},{"name":"volume-up","classes":"fa fa-fw fa-volume-up"},{"name":"qrcode","classes":"fa fa-fw fa-qrcode"},{"name":"barcode","classes":"fa fa-fw fa-barcode"},{"name":"tag","classes":"fa fa-fw fa-tag"},{"name":"tags","classes":"fa fa-fw fa-tags"},{"name":"book","classes":"fa fa-fw fa-book"},{"name":"bookmark","classes":"fa fa-fw fa-bookmark"},{"name":"print","classes":"fa fa-fw fa-print"},{"name":"camera","classes":"fa fa-fw fa-camera"},{"name":"Video Camera","classes":"fa fa-fw fa-video-camera"},{"name":"Picture Outlined","classes":"fa fa-fw fa-picture-o"},{"name":"pencil","classes":"fa fa-fw fa-pencil"},{"name":"map-marker","classes":"fa fa-fw fa-map-marker"},{"name":"adjust","classes":"fa fa-fw fa-adjust"},{"name":"tint","classes":"fa fa-fw fa-tint"},{"name":"Pencil Square Outlined","classes":"fa fa-fw fa-pencil-square-o"},{"name":"Share Square Outlined","classes":"fa fa-fw fa-share-square-o"},{"name":"Check Square Outlined","classes":"fa fa-fw fa-check-square-o"},{"name":"Arrows","classes":"fa fa-fw fa-arrows"},{"name":"Plus Circle","classes":"fa fa-fw fa-plus-circle"},{"name":"Minus Circle","classes":"fa fa-fw fa-minus-circle"},{"name":"Times Circle","classes":"fa fa-fw fa-times-circle"},{"name":"Check Circle","classes":"fa fa-fw fa-check-circle"},{"name":"Question Circle","classes":"fa fa-fw fa-question-circle"},{"name":"Info Circle","classes":"fa fa-fw fa-info-circle"},{"name":"Crosshairs","classes":"fa fa-fw fa-crosshairs"},{"name":"Times Circle Outlined","classes":"fa fa-fw fa-times-circle-o"},{"name":"Check Circle Outlined","classes":"fa fa-fw fa-check-circle-o"},{"name":"ban","classes":"fa fa-fw fa-ban"},{"name":"Share","classes":"fa fa-fw fa-share"},{"name":"plus","classes":"fa fa-fw fa-plus"},{"name":"minus","classes":"fa fa-fw fa-minus"},{"name":"asterisk","classes":"fa fa-fw fa-asterisk"},{"name":"Exclamation Circle","classes":"fa fa-fw fa-exclamation-circle"},{"name":"gift","classes":"fa fa-fw fa-gift"},{"name":"leaf","classes":"fa fa-fw fa-leaf"},{"name":"fire","classes":"fa fa-fw fa-fire"},{"name":"Eye","classes":"fa fa-fw fa-eye"},{"name":"Eye Slash","classes":"fa fa-fw fa-eye-slash"},{"name":"Exclamation Triangle","classes":"fa fa-fw fa-exclamation-triangle"},{"name":"plane","classes":"fa fa-fw fa-plane"},{"name":"calendar","classes":"fa fa-fw fa-calendar"},{"name":"random","classes":"fa fa-fw fa-random"},{"name":"comment","classes":"fa fa-fw fa-comment"},{"name":"magnet","classes":"fa fa-fw fa-magnet"},{"name":"retweet","classes":"fa fa-fw fa-retweet"},{"name":"shopping-cart","classes":"fa fa-fw fa-shopping-cart"},{"name":"Folder","classes":"fa fa-fw fa-folder"},{"name":"Folder Open","classes":"fa fa-fw fa-folder-open"},{"name":"Arrows Vertical","classes":"fa fa-fw fa-arrows-v"},{"name":"Arrows Horizontal","classes":"fa fa-fw fa-arrows-h"},{"name":"Bar Chart","classes":"fa fa-fw fa-bar-chart"},{"name":"camera-retro","classes":"fa fa-fw fa-camera-retro"},{"name":"key","classes":"fa fa-fw fa-key"},{"name":"cogs","classes":"fa fa-fw fa-cogs"},{"name":"comments","classes":"fa fa-fw fa-comments"},{"name":"Thumbs Up Outlined","classes":"fa fa-fw fa-thumbs-o-up"},{"name":"Thumbs Down Outlined","classes":"fa fa-fw fa-thumbs-o-down"},{"name":"star-half","classes":"fa fa-fw fa-star-half"},{"name":"Heart Outlined","classes":"fa fa-fw fa-heart-o"},{"name":"Sign Out","classes":"fa fa-fw fa-sign-out"},{"name":"Thumb Tack","classes":"fa fa-fw fa-thumb-tack"},{"name":"External Link","classes":"fa fa-fw fa-external-link"},{"name":"Sign In","classes":"fa fa-fw fa-sign-in"},{"name":"trophy","classes":"fa fa-fw fa-trophy"},{"name":"Upload","classes":"fa fa-fw fa-upload"},{"name":"Lemon Outlined","classes":"fa fa-fw fa-lemon-o"},{"name":"Phone","classes":"fa fa-fw fa-phone"},{"name":"Square Outlined","classes":"fa fa-fw fa-square-o"},{"name":"Bookmark Outlined","classes":"fa fa-fw fa-bookmark-o"},{"name":"Phone Square","classes":"fa fa-fw fa-phone-square"},{"name":"unlock","classes":"fa fa-fw fa-unlock"},{"name":"credit-card","classes":"fa fa-fw fa-credit-card"},{"name":"rss","classes":"fa fa-fw fa-rss"},{"name":"HDD","classes":"fa fa-fw fa-hdd-o"},{"name":"bullhorn","classes":"fa fa-fw fa-bullhorn"},{"name":"bell","classes":"fa fa-fw fa-bell"},{"name":"certificate","classes":"fa fa-fw fa-certificate"},{"name":"Globe","classes":"fa fa-fw fa-globe"},{"name":"Wrench","classes":"fa fa-fw fa-wrench"},{"name":"Tasks","classes":"fa fa-fw fa-tasks"},{"name":"Filter","classes":"fa fa-fw fa-filter"},{"name":"Briefcase","classes":"fa fa-fw fa-briefcase"},{"name":"Users","classes":"fa fa-fw fa-users"},{"name":"Cloud","classes":"fa fa-fw fa-cloud"},{"name":"Flask","classes":"fa fa-fw fa-flask"},{"name":"Square","classes":"fa fa-fw fa-square"},{"name":"Bars","classes":"fa fa-fw fa-bars"},{"name":"magic","classes":"fa fa-fw fa-magic"},{"name":"truck","classes":"fa fa-fw fa-truck"},{"name":"Money","classes":"fa fa-fw fa-money"},{"name":"Sort","classes":"fa fa-fw fa-sort"},{"name":"Sort Descending","classes":"fa fa-fw fa-sort-desc"},{"name":"Sort Ascending","classes":"fa fa-fw fa-sort-asc"},{"name":"Envelope","classes":"fa fa-fw fa-envelope"},{"name":"Gavel","classes":"fa fa-fw fa-gavel"},{"name":"Tachometer","classes":"fa fa-fw fa-tachometer"},{"name":"comment-o","classes":"fa fa-fw fa-comment-o"},{"name":"comments-o","classes":"fa fa-fw fa-comments-o"},{"name":"Lightning Bolt","classes":"fa fa-fw fa-bolt"},{"name":"Sitemap","classes":"fa fa-fw fa-sitemap"},{"name":"Umbrella","classes":"fa fa-fw fa-umbrella"},{"name":"Lightbulb Outlined","classes":"fa fa-fw fa-lightbulb-o"},{"name":"Exchange","classes":"fa fa-fw fa-exchange"},{"name":"Cloud Download","classes":"fa fa-fw fa-cloud-download"},{"name":"Cloud Upload","classes":"fa fa-fw fa-cloud-upload"},{"name":"Suitcase","classes":"fa fa-fw fa-suitcase"},{"name":"Bell Outlined","classes":"fa fa-fw fa-bell-o"},{"name":"Coffee","classes":"fa fa-fw fa-coffee"},{"name":"Cutlery","classes":"fa fa-fw fa-cutlery"},{"name":"Building Outlined","classes":"fa fa-fw fa-building-o"},{"name":"fighter-jet","classes":"fa fa-fw fa-fighter-jet"},{"name":"beer","classes":"fa fa-fw fa-beer"},{"name":"Plus Square","classes":"fa fa-fw fa-plus-square"},{"name":"Desktop","classes":"fa fa-fw fa-desktop"},{"name":"Laptop","classes":"fa fa-fw fa-laptop"},{"name":"tablet","classes":"fa fa-fw fa-tablet"},{"name":"Mobile Phone","classes":"fa fa-fw fa-mobile"},{"name":"Circle Outlined","classes":"fa fa-fw fa-circle-o"},{"name":"quote-left","classes":"fa fa-fw fa-quote-left"},{"name":"quote-right","classes":"fa fa-fw fa-quote-right"},{"name":"Spinner","classes":"fa fa-fw fa-spinner"},{"name":"Circle","classes":"fa fa-fw fa-circle"},{"name":"Reply","classes":"fa fa-fw fa-reply"},{"name":"Folder Outlined","classes":"fa fa-fw fa-folder-o"},{"name":"Folder Open Outlined","classes":"fa fa-fw fa-folder-open-o"},{"name":"Smile Outlined","classes":"fa fa-fw fa-smile-o"},{"name":"Frown Outlined","classes":"fa fa-fw fa-frown-o"},{"name":"Meh Outlined","classes":"fa fa-fw fa-meh-o"},{"name":"Gamepad","classes":"fa fa-fw fa-gamepad"},{"name":"Keyboard Outlined","classes":"fa fa-fw fa-keyboard-o"},{"name":"Flag Outlined","classes":"fa fa-fw fa-flag-o"},{"name":"flag-checkered","classes":"fa fa-fw fa-flag-checkered"},{"name":"Terminal","classes":"fa fa-fw fa-terminal"},{"name":"Code","classes":"fa fa-fw fa-code"},{"name":"reply-all","classes":"fa fa-fw fa-reply-all"},{"name":"Star Half Outlined","classes":"fa fa-fw fa-star-half-o"},{"name":"location-arrow","classes":"fa fa-fw fa-location-arrow"},{"name":"crop","classes":"fa fa-fw fa-crop"},{"name":"code-fork","classes":"fa fa-fw fa-code-fork"},{"name":"Question","classes":"fa fa-fw fa-question"},{"name":"Info","classes":"fa fa-fw fa-info"},{"name":"exclamation","classes":"fa fa-fw fa-exclamation"},{"name":"eraser","classes":"fa fa-fw fa-eraser"},{"name":"Puzzle Piece","classes":"fa fa-fw fa-puzzle-piece"},{"name":"microphone","classes":"fa fa-fw fa-microphone"},{"name":"Microphone Slash","classes":"fa fa-fw fa-microphone-slash"},{"name":"shield","classes":"fa fa-fw fa-shield"},{"name":"calendar-o","classes":"fa fa-fw fa-calendar-o"},{"name":"fire-extinguisher","classes":"fa fa-fw fa-fire-extinguisher"},{"name":"rocket","classes":"fa fa-fw fa-rocket"},{"name":"Anchor","classes":"fa fa-fw fa-anchor"},{"name":"Unlock Alt","classes":"fa fa-fw fa-unlock-alt"},{"name":"Bullseye","classes":"fa fa-fw fa-bullseye"},{"name":"Ellipsis Horizontal","classes":"fa fa-fw fa-ellipsis-h"},{"name":"Ellipsis Vertical","classes":"fa fa-fw fa-ellipsis-v"},{"name":"RSS Square","classes":"fa fa-fw fa-rss-square"},{"name":"Ticket","classes":"fa fa-fw fa-ticket"},{"name":"Minus Square","classes":"fa fa-fw fa-minus-square"},{"name":"Minus Square Outlined","classes":"fa fa-fw fa-minus-square-o"},{"name":"Level Up","classes":"fa fa-fw fa-level-up"},{"name":"Level Down","classes":"fa fa-fw fa-level-down"},{"name":"Check Square","classes":"fa fa-fw fa-check-square"},{"name":"Pencil Square","classes":"fa fa-fw fa-pencil-square"},{"name":"External Link Square","classes":"fa fa-fw fa-external-link-square"},{"name":"Share Square","classes":"fa fa-fw fa-share-square"},{"name":"Compass","classes":"fa fa-fw fa-compass"},{"name":"Caret Square Outlined Down","classes":"fa fa-fw fa-caret-square-o-down"},{"name":"Caret Square Outlined Up","classes":"fa fa-fw fa-caret-square-o-up"},{"name":"Caret Square Outlined Right","classes":"fa fa-fw fa-caret-square-o-right"},{"name":"Sort Alpha Ascending","classes":"fa fa-fw fa-sort-alpha-asc"},{"name":"Sort Alpha Descending","classes":"fa fa-fw fa-sort-alpha-desc"},{"name":"Sort Amount Ascending","classes":"fa fa-fw fa-sort-amount-asc"},{"name":"Sort Amount Descending","classes":"fa fa-fw fa-sort-amount-desc"},{"name":"Sort Numeric Ascending","classes":"fa fa-fw fa-sort-numeric-asc"},{"name":"Sort Numeric Descending","classes":"fa fa-fw fa-sort-numeric-desc"},{"name":"thumbs-up","classes":"fa fa-fw fa-thumbs-up"},{"name":"thumbs-down","classes":"fa fa-fw fa-thumbs-down"},{"name":"Female","classes":"fa fa-fw fa-female"},{"name":"Male","classes":"fa fa-fw fa-male"},{"name":"Sun Outlined","classes":"fa fa-fw fa-sun-o"},{"name":"Moon Outlined","classes":"fa fa-fw fa-moon-o"},{"name":"Archive","classes":"fa fa-fw fa-archive"},{"name":"Bug","classes":"fa fa-fw fa-bug"},{"name":"Caret Square Outlined Left","classes":"fa fa-fw fa-caret-square-o-left"},{"name":"Dot Circle O","classes":"fa fa-fw fa-dot-circle-o"},{"name":"Wheelchair","classes":"fa fa-fw fa-wheelchair"},{"name":"Plus Square Outlined","classes":"fa fa-fw fa-plus-square-o"},{"name":"Space Shuttle","classes":"fa fa-fw fa-space-shuttle"},{"name":"Envelope Square","classes":"fa fa-fw fa-envelope-square"},{"name":"University","classes":"fa fa-fw fa-university"},{"name":"Graduation Cap","classes":"fa fa-fw fa-graduation-cap"},{"name":"Language","classes":"fa fa-fw fa-language"},{"name":"Fax","classes":"fa fa-fw fa-fax"},{"name":"Building","classes":"fa fa-fw fa-building"},{"name":"Child","classes":"fa fa-fw fa-child"},{"name":"Paw","classes":"fa fa-fw fa-paw"},{"name":"spoon","classes":"fa fa-fw fa-spoon"},{"name":"Cube","classes":"fa fa-fw fa-cube"},{"name":"Cubes","classes":"fa fa-fw fa-cubes"},{"name":"Recycle","classes":"fa fa-fw fa-recycle"},{"name":"Car","classes":"fa fa-fw fa-car"},{"name":"Taxi","classes":"fa fa-fw fa-taxi"},{"name":"Tree","classes":"fa fa-fw fa-tree"},{"name":"Database","classes":"fa fa-fw fa-database"},{"name":"PDF File Outlined","classes":"fa fa-fw fa-file-pdf-o"},{"name":"Word File Outlined","classes":"fa fa-fw fa-file-word-o"},{"name":"Excel File Outlined","classes":"fa fa-fw fa-file-excel-o"},{"name":"Powerpoint File Outlined","classes":"fa fa-fw fa-file-powerpoint-o"},{"name":"Image File Outlined","classes":"fa fa-fw fa-file-image-o"},{"name":"Archive File Outlined","classes":"fa fa-fw fa-file-archive-o"},{"name":"Audio File Outlined","classes":"fa fa-fw fa-file-audio-o"},{"name":"Video File Outlined","classes":"fa fa-fw fa-file-video-o"},{"name":"Code File Outlined","classes":"fa fa-fw fa-file-code-o"},{"name":"Life Ring","classes":"fa fa-fw fa-life-ring"},{"name":"Circle Outlined Notched","classes":"fa fa-fw fa-circle-o-notch"},{"name":"Paper Plane","classes":"fa fa-fw fa-paper-plane"},{"name":"Paper Plane Outlined","classes":"fa fa-fw fa-paper-plane-o"},{"name":"History","classes":"fa fa-fw fa-history"},{"name":"Circle Outlined Thin","classes":"fa fa-fw fa-circle-thin"},{"name":"Sliders","classes":"fa fa-fw fa-sliders"},{"name":"Share Alt","classes":"fa fa-fw fa-share-alt"},{"name":"Share Alt Square","classes":"fa fa-fw fa-share-alt-square"},{"name":"Bomb","classes":"fa fa-fw fa-bomb"},{"name":"Futbol Outlined","classes":"fa fa-fw fa-futbol-o"},{"name":"TTY","classes":"fa fa-fw fa-tty"},{"name":"Binoculars","classes":"fa fa-fw fa-binoculars"},{"name":"Plug","classes":"fa fa-fw fa-plug"},{"name":"Newspaper Outlined","classes":"fa fa-fw fa-newspaper-o"},{"name":"WiFi","classes":"fa fa-fw fa-wifi"},{"name":"Calculator","classes":"fa fa-fw fa-calculator"},{"name":"Bell Slash","classes":"fa fa-fw fa-bell-slash"},{"name":"Bell Slash Outlined","classes":"fa fa-fw fa-bell-slash-o"},{"name":"Trash","classes":"fa fa-fw fa-trash"},{"name":"Copyright","classes":"fa fa-fw fa-copyright"},{"name":"At","classes":"fa fa-fw fa-at"},{"name":"Eyedropper","classes":"fa fa-fw fa-eyedropper"},{"name":"Paint Brush","classes":"fa fa-fw fa-paint-brush"},{"name":"Birthday Cake","classes":"fa fa-fw fa-birthday-cake"},{"name":"Area Chart","classes":"fa fa-fw fa-area-chart"},{"name":"Pie Chart","classes":"fa fa-fw fa-pie-chart"},{"name":"Line Chart","classes":"fa fa-fw fa-line-chart"},{"name":"Toggle Off","classes":"fa fa-fw fa-toggle-off"},{"name":"Toggle On","classes":"fa fa-fw fa-toggle-on"},{"name":"Bicycle","classes":"fa fa-fw fa-bicycle"},{"name":"Bus","classes":"fa fa-fw fa-bus"},{"name":"Closed Captions","classes":"fa fa-fw fa-cc"}],"Text Editor Icons":[{"name":"th-large","classes":"fa fa-fw fa-th-large"},{"name":"th","classes":"fa fa-fw fa-th"},{"name":"th-list","classes":"fa fa-fw fa-th-list"},{"name":"File Outlined","classes":"fa fa-fw fa-file-o"},{"name":"Repeat","classes":"fa fa-fw fa-repeat"},{"name":"list-alt","classes":"fa fa-fw fa-list-alt"},{"name":"font","classes":"fa fa-fw fa-font"},{"name":"bold","classes":"fa fa-fw fa-bold"},{"name":"italic","classes":"fa fa-fw fa-italic"},{"name":"text-height","classes":"fa fa-fw fa-text-height"},{"name":"text-width","classes":"fa fa-fw fa-text-width"},{"name":"align-left","classes":"fa fa-fw fa-align-left"},{"name":"align-center","classes":"fa fa-fw fa-align-center"},{"name":"align-right","classes":"fa fa-fw fa-align-right"},{"name":"align-justify","classes":"fa fa-fw fa-align-justify"},{"name":"list","classes":"fa fa-fw fa-list"},{"name":"Outdent","classes":"fa fa-fw fa-outdent"},{"name":"Indent","classes":"fa fa-fw fa-indent"},{"name":"Link","classes":"fa fa-fw fa-link"},{"name":"Scissors","classes":"fa fa-fw fa-scissors"},{"name":"Files Outlined","classes":"fa fa-fw fa-files-o"},{"name":"Paperclip","classes":"fa fa-fw fa-paperclip"},{"name":"Floppy Outlined","classes":"fa fa-fw fa-floppy-o"},{"name":"list-ul","classes":"fa fa-fw fa-list-ul"},{"name":"list-ol","classes":"fa fa-fw fa-list-ol"},{"name":"Strikethrough","classes":"fa fa-fw fa-strikethrough"},{"name":"Underline","classes":"fa fa-fw fa-underline"},{"name":"table","classes":"fa fa-fw fa-table"},{"name":"Columns","classes":"fa fa-fw fa-columns"},{"name":"Undo","classes":"fa fa-fw fa-undo"},{"name":"Clipboard","classes":"fa fa-fw fa-clipboard"},{"name":"File Text Outlined","classes":"fa fa-fw fa-file-text-o"},{"name":"Chain Broken","classes":"fa fa-fw fa-chain-broken"},{"name":"superscript","classes":"fa fa-fw fa-superscript"},{"name":"subscript","classes":"fa fa-fw fa-subscript"},{"name":"eraser","classes":"fa fa-fw fa-eraser"},{"name":"File","classes":"fa fa-fw fa-file"},{"name":"File Text","classes":"fa fa-fw fa-file-text"},{"name":"header","classes":"fa fa-fw fa-header"},{"name":"paragraph","classes":"fa fa-fw fa-paragraph"}],"Spinner Icons":[{"name":"cog","classes":"fa fa-fw fa-cog"},{"name":"refresh","classes":"fa fa-fw fa-refresh"},{"name":"Spinner","classes":"fa fa-fw fa-spinner"},{"name":"Circle Outlined Notched","classes":"fa fa-fw fa-circle-o-notch"}],"File Type Icons":[{"name":"File Outlined","classes":"fa fa-fw fa-file-o"},{"name":"File Text Outlined","classes":"fa fa-fw fa-file-text-o"},{"name":"File","classes":"fa fa-fw fa-file"},{"name":"File Text","classes":"fa fa-fw fa-file-text"},{"name":"PDF File Outlined","classes":"fa fa-fw fa-file-pdf-o"},{"name":"Word File Outlined","classes":"fa fa-fw fa-file-word-o"},{"name":"Excel File Outlined","classes":"fa fa-fw fa-file-excel-o"},{"name":"Powerpoint File Outlined","classes":"fa fa-fw fa-file-powerpoint-o"},{"name":"Image File Outlined","classes":"fa fa-fw fa-file-image-o"},{"name":"Archive File Outlined","classes":"fa fa-fw fa-file-archive-o"},{"name":"Audio File Outlined","classes":"fa fa-fw fa-file-audio-o"},{"name":"Video File Outlined","classes":"fa fa-fw fa-file-video-o"},{"name":"Code File Outlined","classes":"fa fa-fw fa-file-code-o"}],"Directional Icons":[{"name":"Arrow Circle Outlined Down","classes":"fa fa-fw fa-arrow-circle-o-down"},{"name":"Arrow Circle Outlined Up","classes":"fa fa-fw fa-arrow-circle-o-up"},{"name":"Arrows","classes":"fa fa-fw fa-arrows"},{"name":"chevron-left","classes":"fa fa-fw fa-chevron-left"},{"name":"chevron-right","classes":"fa fa-fw fa-chevron-right"},{"name":"arrow-left","classes":"fa fa-fw fa-arrow-left"},{"name":"arrow-right","classes":"fa fa-fw fa-arrow-right"},{"name":"arrow-up","classes":"fa fa-fw fa-arrow-up"},{"name":"arrow-down","classes":"fa fa-fw fa-arrow-down"},{"name":"chevron-up","classes":"fa fa-fw fa-chevron-up"},{"name":"chevron-down","classes":"fa fa-fw fa-chevron-down"},{"name":"Arrows Vertical","classes":"fa fa-fw fa-arrows-v"},{"name":"Arrows Horizontal","classes":"fa fa-fw fa-arrows-h"},{"name":"Hand Outlined Right","classes":"fa fa-fw fa-hand-o-right"},{"name":"Hand Outlined Left","classes":"fa fa-fw fa-hand-o-left"},{"name":"Hand Outlined Up","classes":"fa fa-fw fa-hand-o-up"},{"name":"Hand Outlined Down","classes":"fa fa-fw fa-hand-o-down"},{"name":"Arrow Circle Left","classes":"fa fa-fw fa-arrow-circle-left"},{"name":"Arrow Circle Right","classes":"fa fa-fw fa-arrow-circle-right"},{"name":"Arrow Circle Up","classes":"fa fa-fw fa-arrow-circle-up"},{"name":"Arrow Circle Down","classes":"fa fa-fw fa-arrow-circle-down"},{"name":"Arrows Alt","classes":"fa fa-fw fa-arrows-alt"},{"name":"Caret Down","classes":"fa fa-fw fa-caret-down"},{"name":"Caret Up","classes":"fa fa-fw fa-caret-up"},{"name":"Caret Left","classes":"fa fa-fw fa-caret-left"},{"name":"Caret Right","classes":"fa fa-fw fa-caret-right"},{"name":"Angle Double Left","classes":"fa fa-fw fa-angle-double-left"},{"name":"Angle Double Right","classes":"fa fa-fw fa-angle-double-right"},{"name":"Angle Double Up","classes":"fa fa-fw fa-angle-double-up"},{"name":"Angle Double Down","classes":"fa fa-fw fa-angle-double-down"},{"name":"angle-left","classes":"fa fa-fw fa-angle-left"},{"name":"angle-right","classes":"fa fa-fw fa-angle-right"},{"name":"angle-up","classes":"fa fa-fw fa-angle-up"},{"name":"angle-down","classes":"fa fa-fw fa-angle-down"},{"name":"Chevron Circle Left","classes":"fa fa-fw fa-chevron-circle-left"},{"name":"Chevron Circle Right","classes":"fa fa-fw fa-chevron-circle-right"},{"name":"Chevron Circle Up","classes":"fa fa-fw fa-chevron-circle-up"},{"name":"Chevron Circle Down","classes":"fa fa-fw fa-chevron-circle-down"},{"name":"Caret Square Outlined Down","classes":"fa fa-fw fa-caret-square-o-down"},{"name":"Caret Square Outlined Up","classes":"fa fa-fw fa-caret-square-o-up"},{"name":"Caret Square Outlined Right","classes":"fa fa-fw fa-caret-square-o-right"},{"name":"Long Arrow Down","classes":"fa fa-fw fa-long-arrow-down"},{"name":"Long Arrow Up","classes":"fa fa-fw fa-long-arrow-up"},{"name":"Long Arrow Left","classes":"fa fa-fw fa-long-arrow-left"},{"name":"Long Arrow Right","classes":"fa fa-fw fa-long-arrow-right"},{"name":"Arrow Circle Outlined Right","classes":"fa fa-fw fa-arrow-circle-o-right"},{"name":"Arrow Circle Outlined Left","classes":"fa fa-fw fa-arrow-circle-o-left"},{"name":"Caret Square Outlined Left","classes":"fa fa-fw fa-caret-square-o-left"}],"Video Player Icons":[{"name":"Play Circle Outlined","classes":"fa fa-fw fa-play-circle-o"},{"name":"step-backward","classes":"fa fa-fw fa-step-backward"},{"name":"fast-backward","classes":"fa fa-fw fa-fast-backward"},{"name":"backward","classes":"fa fa-fw fa-backward"},{"name":"play","classes":"fa fa-fw fa-play"},{"name":"pause","classes":"fa fa-fw fa-pause"},{"name":"stop","classes":"fa fa-fw fa-stop"},{"name":"forward","classes":"fa fa-fw fa-forward"},{"name":"fast-forward","classes":"fa fa-fw fa-fast-forward"},{"name":"step-forward","classes":"fa fa-fw fa-step-forward"},{"name":"eject","classes":"fa fa-fw fa-eject"},{"name":"Expand","classes":"fa fa-fw fa-expand"},{"name":"Compress","classes":"fa fa-fw fa-compress"},{"name":"Arrows Alt","classes":"fa fa-fw fa-arrows-alt"},{"name":"Play Circle","classes":"fa fa-fw fa-play-circle"},{"name":"YouTube Play","classes":"fa fa-fw fa-youtube-play"}],"Form Control Icons":[{"name":"Check Square Outlined","classes":"fa fa-fw fa-check-square-o"},{"name":"Square Outlined","classes":"fa fa-fw fa-square-o"},{"name":"Square","classes":"fa fa-fw fa-square"},{"name":"Plus Square","classes":"fa fa-fw fa-plus-square"},{"name":"Circle Outlined","classes":"fa fa-fw fa-circle-o"},{"name":"Circle","classes":"fa fa-fw fa-circle"},{"name":"Minus Square","classes":"fa fa-fw fa-minus-square"},{"name":"Minus Square Outlined","classes":"fa fa-fw fa-minus-square-o"},{"name":"Check Square","classes":"fa fa-fw fa-check-square"},{"name":"Dot Circle O","classes":"fa fa-fw fa-dot-circle-o"},{"name":"Plus Square Outlined","classes":"fa fa-fw fa-plus-square-o"}],"Chart Icons":[{"name":"Bar Chart","classes":"fa fa-fw fa-bar-chart"},{"name":"Area Chart","classes":"fa fa-fw fa-area-chart"},{"name":"Pie Chart","classes":"fa fa-fw fa-pie-chart"},{"name":"Line Chart","classes":"fa fa-fw fa-line-chart"}],"Brand Icons":[{"name":"Twitter Square","classes":"fa fa-fw fa-twitter-square"},{"name":"Facebook Square","classes":"fa fa-fw fa-facebook-square"},{"name":"LinkedIn Square","classes":"fa fa-fw fa-linkedin-square"},{"name":"GitHub Square","classes":"fa fa-fw fa-github-square"},{"name":"Twitter","classes":"fa fa-fw fa-twitter"},{"name":"Facebook","classes":"fa fa-fw fa-facebook"},{"name":"GitHub","classes":"fa fa-fw fa-github"},{"name":"Pinterest","classes":"fa fa-fw fa-pinterest"},{"name":"Pinterest Square","classes":"fa fa-fw fa-pinterest-square"},{"name":"Google Plus Square","classes":"fa fa-fw fa-google-plus-square"},{"name":"Google Plus","classes":"fa fa-fw fa-google-plus"},{"name":"LinkedIn","classes":"fa fa-fw fa-linkedin"},{"name":"GitHub Alt","classes":"fa fa-fw fa-github-alt"},{"name":"MaxCDN","classes":"fa fa-fw fa-maxcdn"},{"name":"HTML 5 Logo","classes":"fa fa-fw fa-html5"},{"name":"CSS 3 Logo","classes":"fa fa-fw fa-css3"},{"name":"Bitcoin (BTC)","classes":"fa fa-fw fa-btc"},{"name":"YouTube Square","classes":"fa fa-fw fa-youtube-square"},{"name":"YouTube","classes":"fa fa-fw fa-youtube"},{"name":"Xing","classes":"fa fa-fw fa-xing"},{"name":"Xing Square","classes":"fa fa-fw fa-xing-square"},{"name":"YouTube Play","classes":"fa fa-fw fa-youtube-play"},{"name":"Dropbox","classes":"fa fa-fw fa-dropbox"},{"name":"Stack Overflow","classes":"fa fa-fw fa-stack-overflow"},{"name":"Instagram","classes":"fa fa-fw fa-instagram"},{"name":"Flickr","classes":"fa fa-fw fa-flickr"},{"name":"App.net","classes":"fa fa-fw fa-adn"},{"name":"Bitbucket","classes":"fa fa-fw fa-bitbucket"},{"name":"Bitbucket Square","classes":"fa fa-fw fa-bitbucket-square"},{"name":"Tumblr","classes":"fa fa-fw fa-tumblr"},{"name":"Tumblr Square","classes":"fa fa-fw fa-tumblr-square"},{"name":"Apple","classes":"fa fa-fw fa-apple"},{"name":"Windows","classes":"fa fa-fw fa-windows"},{"name":"Android","classes":"fa fa-fw fa-android"},{"name":"Linux","classes":"fa fa-fw fa-linux"},{"name":"Dribbble","classes":"fa fa-fw fa-dribbble"},{"name":"Skype","classes":"fa fa-fw fa-skype"},{"name":"Foursquare","classes":"fa fa-fw fa-foursquare"},{"name":"Trello","classes":"fa fa-fw fa-trello"},{"name":"Gittip","classes":"fa fa-fw fa-gittip"},{"name":"VK","classes":"fa fa-fw fa-vk"},{"name":"Weibo","classes":"fa fa-fw fa-weibo"},{"name":"Renren","classes":"fa fa-fw fa-renren"},{"name":"Pagelines","classes":"fa fa-fw fa-pagelines"},{"name":"Stack Exchange","classes":"fa fa-fw fa-stack-exchange"},{"name":"Vimeo Square","classes":"fa fa-fw fa-vimeo-square"},{"name":"Slack Logo","classes":"fa fa-fw fa-slack"},{"name":"Wordpress Logo","classes":"fa fa-fw fa-wordpress"},{"name":"OpenID","classes":"fa fa-fw fa-openid"},{"name":"Yahoo Logo","classes":"fa fa-fw fa-yahoo"},{"name":"Google Logo","classes":"fa fa-fw fa-google"},{"name":"reddit Logo","classes":"fa fa-fw fa-reddit"},{"name":"reddit Square","classes":"fa fa-fw fa-reddit-square"},{"name":"StumbleUpon Circle","classes":"fa fa-fw fa-stumbleupon-circle"},{"name":"StumbleUpon Logo","classes":"fa fa-fw fa-stumbleupon"},{"name":"Delicious Logo","classes":"fa fa-fw fa-delicious"},{"name":"Digg Logo","classes":"fa fa-fw fa-digg"},{"name":"Pied Piper Logo","classes":"fa fa-fw fa-pied-piper"},{"name":"Pied Piper Alternate Logo","classes":"fa fa-fw fa-pied-piper-alt"},{"name":"Drupal Logo","classes":"fa fa-fw fa-drupal"},{"name":"Joomla Logo","classes":"fa fa-fw fa-joomla"},{"name":"Behance","classes":"fa fa-fw fa-behance"},{"name":"Behance Square","classes":"fa fa-fw fa-behance-square"},{"name":"Steam","classes":"fa fa-fw fa-steam"},{"name":"Steam Square","classes":"fa fa-fw fa-steam-square"},{"name":"Spotify","classes":"fa fa-fw fa-spotify"},{"name":"deviantART","classes":"fa fa-fw fa-deviantart"},{"name":"SoundCloud","classes":"fa fa-fw fa-soundcloud"},{"name":"Vine","classes":"fa fa-fw fa-vine"},{"name":"Codepen","classes":"fa fa-fw fa-codepen"},{"name":"jsFiddle","classes":"fa fa-fw fa-jsfiddle"},{"name":"Rebel Alliance","classes":"fa fa-fw fa-rebel"},{"name":"Galactic Empire","classes":"fa fa-fw fa-empire"},{"name":"Git Square","classes":"fa fa-fw fa-git-square"},{"name":"Git","classes":"fa fa-fw fa-git"},{"name":"Hacker News","classes":"fa fa-fw fa-hacker-news"},{"name":"Tencent Weibo","classes":"fa fa-fw fa-tencent-weibo"},{"name":"QQ","classes":"fa fa-fw fa-qq"},{"name":"Weixin (WeChat)","classes":"fa fa-fw fa-weixin"},{"name":"Share Alt","classes":"fa fa-fw fa-share-alt"},{"name":"Share Alt Square","classes":"fa fa-fw fa-share-alt-square"},{"name":"Slideshare","classes":"fa fa-fw fa-slideshare"},{"name":"Twitch","classes":"fa fa-fw fa-twitch"},{"name":"Yelp","classes":"fa fa-fw fa-yelp"},{"name":"Paypal","classes":"fa fa-fw fa-paypal"},{"name":"Goole Wallet","classes":"fa fa-fw fa-google-wallet"},{"name":"Visa Credit Card","classes":"fa fa-fw fa-cc-visa"},{"name":"MasterCard Credit Card","classes":"fa fa-fw fa-cc-mastercard"},{"name":"Discover Credit Card","classes":"fa fa-fw fa-cc-discover"},{"name":"American Express Credit Card","classes":"fa fa-fw fa-cc-amex"},{"name":"Paypal Credit Card","classes":"fa fa-fw fa-cc-paypal"},{"name":"Stripe Credit Card","classes":"fa fa-fw fa-cc-stripe"},{"name":"last.fm","classes":"fa fa-fw fa-lastfm"},{"name":"last.fm Square","classes":"fa fa-fw fa-lastfm-square"},{"name":"ioxhost","classes":"fa fa-fw fa-ioxhost"},{"name":"AngelList","classes":"fa fa-fw fa-angellist"},{"name":"meanpath","classes":"fa fa-fw fa-meanpath"}],"Payment Icons":[{"name":"credit-card","classes":"fa fa-fw fa-credit-card"},{"name":"Paypal","classes":"fa fa-fw fa-paypal"},{"name":"Goole Wallet","classes":"fa fa-fw fa-google-wallet"},{"name":"Visa Credit Card","classes":"fa fa-fw fa-cc-visa"},{"name":"MasterCard Credit Card","classes":"fa fa-fw fa-cc-mastercard"},{"name":"Discover Credit Card","classes":"fa fa-fw fa-cc-discover"},{"name":"American Express Credit Card","classes":"fa fa-fw fa-cc-amex"},{"name":"Paypal Credit Card","classes":"fa fa-fw fa-cc-paypal"},{"name":"Stripe Credit Card","classes":"fa fa-fw fa-cc-stripe"}],"Currency Icons":[{"name":"Money","classes":"fa fa-fw fa-money"},{"name":"Euro (EUR)","classes":"fa fa-fw fa-eur"},{"name":"GBP","classes":"fa fa-fw fa-gbp"},{"name":"US Dollar","classes":"fa fa-fw fa-usd"},{"name":"Indian Rupee (INR)","classes":"fa fa-fw fa-inr"},{"name":"Japanese Yen (JPY)","classes":"fa fa-fw fa-jpy"},{"name":"Russian Ruble (RUB)","classes":"fa fa-fw fa-rub"},{"name":"Korean Won (KRW)","classes":"fa fa-fw fa-krw"},{"name":"Bitcoin (BTC)","classes":"fa fa-fw fa-btc"},{"name":"Turkish Lira (TRY)","classes":"fa fa-fw fa-try"},{"name":"Shekel (ILS)","classes":"fa fa-fw fa-ils"}],"Medical Icons":[{"name":"user-md","classes":"fa fa-fw fa-user-md"},{"name":"Stethoscope","classes":"fa fa-fw fa-stethoscope"},{"name":"hospital Outlined","classes":"fa fa-fw fa-hospital-o"},{"name":"ambulance","classes":"fa fa-fw fa-ambulance"},{"name":"medkit","classes":"fa fa-fw fa-medkit"},{"name":"H Square","classes":"fa fa-fw fa-h-square"},{"name":"Plus Square","classes":"fa fa-fw fa-plus-square"},{"name":"Wheelchair","classes":"fa fa-fw fa-wheelchair"}]};
 
 	$scope.iconCategory = $scope.icons['default'];
 
@@ -407,10 +463,11 @@ pokerApp.controller('mainCtrl', function ($scope) {
 		$scope.sync();
 	};
 
-	$scope.selectCard = function(card) {
-		if($scope.state.cardSelected === card) {
+	$scope.selectCard = function(card, force) {
+		if(!force && $scope.state.cardSelected === card) {
 			return;
 		}
+	
 
 		if($scope.reveal && $scope.state.cardSelected && $scope.state.cardSelected !== "None") {
 			$scope.state.cardHistory.unshift($scope.state.cardSelected);
@@ -420,11 +477,40 @@ pokerApp.controller('mainCtrl', function ($scope) {
 			$scope.state.needBreak = !$scope.state.needBreak;
 		} else {
 			$scope.state.cardSelected = card;
+
+			if(card === 'None') {
+				$scope.flashCard();
+			} else {
+				$scope.stopAnimations();
+			}
 		}
 
 		$scope.update();
 		$scope.sync();
 	};
+
+	$scope.aniElements = [];
+	$scope.stopAnimations = function() {
+
+		while($scope.aniElements.length) {
+			var e = $scope.aniElements.pop();
+			e.velocity('stop');
+			e.removeAttr('style');
+		}
+	};
+
+	$scope.flashCard = _.debounce(function() {
+		var card = $('.cardStateSelected');
+		var color = card.css('background-color');
+		$scope.aniElements.push(card);
+
+		card.velocity({ color: rgbToHex(color) }, {
+			duration: '1000',
+			loop: true,
+			begin: function() { card.css('color', '#FFFF00'); }
+		});
+
+	}, 250);
 
 	$scope.sync = _.debounce(function() {
 		var key = gapi.hangout.getLocalParticipantId();
@@ -436,13 +522,11 @@ pokerApp.controller('mainCtrl', function ($scope) {
 	$scope.resetAll = function() {
 		gapi.hangout.data.setValue('!resetAll', (JSON.stringify(new Date())));
 		$scope.showAll(false);
-		console.log($scope);
 	};
 
 	$scope.showAll = function(reveal) {
 		gapi.hangout.data.setValue('!reveal', JSON.stringify(reveal));
-		$scope.reveal = reveal;
-		$scope.update();
+		$scope.applyReveal(reveal);
 	};
 
 	$scope.hasConsensus = function() {
@@ -467,6 +551,54 @@ pokerApp.controller('mainCtrl', function ($scope) {
 		return cnt > 2;
 	};
 
+	$scope.revealing = false;
+	$scope.toReveal = [];
+	$scope.applyReveal = function(value) {
+		if($scope.revealing) {
+			var v = value;
+			$scope.toReveal.push(function() { $scope.applyReveal(v); });
+			return;
+		}
+
+		$scope.revealing = true;
+		var done = function(r, c) {
+			$scope.reveal = r;
+			$scope.consensus = c;
+			$scope.revealing = false;
+			if($scope.toReveal.length) {
+				$scope.toReveal.pop()();
+			} else {
+				$scope.update();
+			}
+		};
+
+		if(!value) {
+			return done(false, false);
+		}
+
+		$scope.revealsSinceReset++;
+		var consensus = $scope.revealsSinceReset === 1 && 
+			$scope.people.length > 1 &&
+			$scope.hasConsensus();
+
+		if(!consensus) {
+			return done(true, false);
+		}
+			
+		// reveal & consensus
+		var cards = $('#mainList .pokerCardLg');
+		cards.velocity({rotateY: '90deg'}, {duration: 1000, complete: function() {
+			cards.velocity({rotateY: '-90deg'}, {duration: 1, complete: function() {
+				$scope.reveal = true;
+				$scope.$apply(); // no debounce
+
+				cards.velocity({rotateY: '0deg'}, {duration: 1000, complete: function() {
+					done(true, true);
+				}});
+			}});
+		}});
+	},
+
 	$scope.applyStateChange = function(eventObj) {
 		$scope.consensus = false;
 
@@ -477,14 +609,8 @@ pokerApp.controller('mainCtrl', function ($scope) {
 					$scope.resetMe(eventObj.addedKeys[e].value);
 				}
 			} else if(eventObj.addedKeys[e].key === '!reveal') {
-				$scope.reveal = JSON.parse(eventObj.addedKeys[e].value);
-
-				if($scope.reveal) {
-					$scope.revealsSinceReset++;
-					if($scope.revealsSinceReset === 1 && $scope.people.length > 1) {
-						$scope.consensus = $scope.hasConsensus();
-					}
-				}
+				var r = JSON.parse(eventObj.addedKeys[e].value);
+				$scope.applyReveal(r);
 			} else {
 				for (var s = $scope.people.length - 1; s >= 0; s--) {
 					if( $scope.people[s].id === eventObj.addedKeys[e].key ) {
@@ -526,13 +652,36 @@ pokerApp.controller('mainCtrl', function ($scope) {
 	$scope.resetMe = function(resetTime) {
 		$scope.lastReset = resetTime;
 		$scope.consensus = false;
-		$scope.selectCard('None');
+		$scope.selectCard('None', resetTime === null); // true on first reset
 		$scope.state.cardHistory = [];
 		$scope.revealsSinceReset = 0;
 
 		$scope.update();
 	};
 	$scope.resetMe(null);
+
+	$scope.debug = {
+		enabled: false,
+
+		addPeople: function() {
+			console.log('addPeople');
+			$scope.people[1] = { displayName:'aaa', hasAppEnabled:true, id: 'qweqwe', image: $scope.people[0].image, online: true, state:{cardBack: 'cardBackDefault', cardHistory:[], cardSelected: '2', needBreak: false}};
+			$scope.people[2] = { displayName:'sss', hasAppEnabled:true, id: '1231', image: $scope.people[0].image, online: true, state:{cardBack: 'cardBackDefault', cardHistory:[], cardSelected: '2', needBreak: false}};
+			$scope.people[3] = { displayName:'ddd', hasAppEnabled:true, id: 'sdfsv', image: $scope.people[0].image, online: true, state:{cardBack: 'cardBackDefault', cardHistory:[], cardSelected: '2', needBreak: false}};
+			$scope.people[4] = { displayName:'fff', hasAppEnabled:true, id: 'cewce', image: $scope.people[0].image, online: true, state:{cardBack: 'cardBackDefault', cardHistory:[], cardSelected: '2', needBreak: false}};
+			$scope.people[5] = { displayName:'ggg', hasAppEnabled:true, id: 'uymum', image: $scope.people[0].image, online: true, state:{cardBack: 'cardBackDefault', cardHistory:[], cardSelected: '2', needBreak: false}};
+			$scope.update();
+			$scope.autoSizeMainList();
+		},
+
+		data: null,
+		showData: false,
+		enableData: function(show) {
+			console.log('enableData');
+			$scope.debug.data = (new Date()).toString();
+			$scope.debug.showData = show;
+		}
+	};
 
 	gapi.hangout.onApiReady.add(function(eventObj){
 		if (eventObj.isApiReady) {
@@ -553,6 +702,7 @@ pokerApp.controller('mainCtrl', function ($scope) {
 		}
 
 		$scope.update();
+		$scope.autoSizeMainList();
 	});
 
 	gapi.hangout.data.onStateChanged.add(function(eventObj) {
@@ -561,6 +711,7 @@ pokerApp.controller('mainCtrl', function ($scope) {
 
 	gapi.hangout.onParticipantsChanged.add(function(eventObj) {
 		$scope.applyParticipants(eventObj.participants);
+		$scope.update();
 		$scope.autoSizeMainList();
 	});
 
@@ -573,8 +724,8 @@ pokerApp.controller('mainCtrl', function ($scope) {
 			}
 		}
 
-		$scope.autoSizeMainList();
 		$scope.update();
+		$scope.autoSizeMainList();
 	});
 
 	$(window).resize(_.debounce(function() {

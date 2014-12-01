@@ -10,7 +10,7 @@
         <div class="buttons">
             <button class="iconBtn" ng-click="showConfig = true"><span class="fa fa-gear"/></button>
         </div>
-        <h1 class="title">Scrum Poker <span class="ver">###version###</h2></h1>
+        <h1 class="title">Scrum Poker <span class="ver">###version###</span></h1>
 
         <div id="myCards">
             <div class="pokerCardSm" ng-repeat="card in cards" ng-click="selectCard(card)" 
@@ -45,40 +45,69 @@
                 </li>
             </ul>
         </div>
-        <div class="configOuter" ng-show="showConfig">
-            <div class="configMiddle">
-                <div class="configInner">
+
+        <div class="dialogOuter" ng-show="showConfig">
+            <div class="dialogMiddle">
+                <div class="dialogInner config">
                     <h2>Config</h2>
-                    <label>Size of my cards: <span class="value">{{cfg.smSize}}</span></label> 
-                    <input type="range" min="1" max="128" ng-model="cfg.smSize" /> 
-                    <label>Minimum size of participants: <span class="value">{{cfg.lgMinSize}}</span></label> 
+
+                    <h3>Participant zone</h3>
+                    <label>Minimum size: <span class="value">{{cfg.lgMinSize}}</span></label> 
                     <input type="range" min="1" max="128" ng-model="cfg.lgMinSize" /> 
-                    <label>Maximum size of participants: <span class="value">{{cfg.lgMaxSize}}</span></label> 
+                    <label>Maximum size: <span class="value">{{cfg.lgMaxSize}}</span></label> 
                     <input type="range" min="1" max="128" ng-model="cfg.lgMaxSize" />
+
+                    <h3>My cards</h3>
+                    <label>Selectable card size: <span class="value">{{cfg.smSize}}</span></label> 
+                    <input type="range" min="1" max="128" ng-model="cfg.smSize" /> 
                     <div>
-                        <div class="pokerCardLg">
+                        <div class="pokerCardLg" title="Everyone sees this">
                             <div class="{{cfg.cardBack}}"></div>
                         </div>
-                        <label>Card back:</label>
+                        <label title="Everyone sees this">Card back:</label>
                         <select ng-model="iconCategory" ng-options="value as key for (key, value) in icons"></select>
                         <div class="selectableIcons">
                             <span ng-repeat="icon in iconCategory" class="{{icon.classes}}" ng-click="cfg.cardBack = icon.classes" title="{{icon.name}}"></span>
                         </div>
                     </div>
 
+                    <div>
+                        <input type="checkbox" ng-model="debug.enabled">Enable debug menu
+                    </div>
+
                     <div class="buttons">
                         <button class="iconBtn" ng-click="applyConfig()"><span class="fa fa-check"/></button>
                     </div>
-                    <div class="configFooter"/>
+                    <div class="configFooter"></div>
                 </div>
             </div>
         </div>
-        <div id="debug" class="info"></div><script src="//plus.google.com/hangouts/_/api/v1/hangout.js"></script>
+
+        <div class="dialogOuter" ng-show="debug.showData">
+            <div class="dialogMiddle">
+                <div class="dialogInner config">
+                    <h2>Debug</h2>
+                    <div class="buttons">
+                        <button class="iconBtn" ng-click="debug.enableData(false)"><span class="fa fa-check"/></button>
+                    </div>
+                    <div class="configFooter"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer" ng-show="debug.enabled">
+            <button ng-click="debug.addPeople()">Fake People</button>
+            <button ng-click="debug.enableData(true)">Show data</button>
+            <button ng-click="autoSizeMainList()">Resize</button>
+        </div>
+
+        <script src="//plus.google.com/hangouts/_/api/v1/hangout.js"></script>
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
         <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular.js"></script>
         <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular-animate.js"></script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js"></script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/js-yaml/3.0.2/js-yaml.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/velocity/1.1.0/velocity.min.js"></script>
         <script>
 /* ###app.js### */
         </script>
