@@ -87,6 +87,7 @@
             <div class="dialogMiddle">
                 <div class="dialogInner config">
                     <h2>Debug</h2>
+                    <textarea>{{debug.data}}</textarea>
                     <div class="buttons">
                         <button class="iconBtn" ng-click="debug.enableData(false)"><span class="fa fa-check"/></button>
                     </div>
@@ -100,6 +101,8 @@
             <button ng-click="debug.enableData(true)">Show data</button>
             <button ng-click="autoSizeMainList()">Resize</button>
         </div>
+
+        <div class="uiLock" ng-show="lockUI" ng-class="{debug: debug.enabled}"/>
 
         <script src="//plus.google.com/hangouts/_/api/v1/hangout.js"></script>
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>

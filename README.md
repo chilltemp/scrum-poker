@@ -1,11 +1,13 @@
 # Scrum / Planning Poker for Google Hangouts
 
 ## To Do
-* Stack cards when someone changes their mind.  Show prior number 
-** Added, needs formatting
-* Per user: colors, card back (unicode char)
-* Flip cards: http://davidwalsh.name/css-flip
-* Convert perl merge script to node.js
+* Save user preferences
+* Make Hangouts interface an Angular service
+* Alternate decks/cards
+* Card back icons
+** More
+** Filter symbols that I use in the UI
+* '$' breaks the build script
 
 ## "Build"
 ### Required
@@ -15,5 +17,6 @@
   download https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/src/icons.yml
 
 ### Commands
-	grunt; cp -r . ~/Google\ Drive/hangouts/scrumPoker; cp scrum-poker.xml /Volumes/myfiles.messagingengine.com/hangouts/scrum-poker-dev.xml 
+	grunt
+	grunt watch
 

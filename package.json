@@ -1,6 +1,6 @@
 {
   "name": "hangouts-scrum-poker",
-  "version": "v1.3.1",
+  "version": "v1.5.17",
   "private": true,
   "author": "Charles Hill",
   "devDependencies": {

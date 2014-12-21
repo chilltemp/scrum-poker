@@ -1,3 +1,9 @@
+if (typeof String.prototype.startsWith != 'function') {
+  // see below for better implementation!
+  String.prototype.startsWith = function (str){
+    return this.indexOf(str) == 0;
+  };
+}
 
 function createDefaultState() {
 	return {
@@ -37,6 +43,7 @@ pokerApp.controller('mainCtrl', function ($scope) {
 	$scope.reveal = false;
 	$scope.animate = false;
 	$scope.showConfig = false;
+	$scope.lockUI = false;
 	$scope.cfg = {
 		smSize: 16,
 		lgMinSize: 16,
@@ -175,6 +182,7 @@ pokerApp.controller('mainCtrl', function ($scope) {
 			if($scope.toReveal.length) {
 				$scope.toReveal.pop()();
 			} else {
+				$scope.lockUI = false;
 				$scope.update();
 			}
 		};
@@ -188,23 +196,46 @@ pokerApp.controller('mainCtrl', function ($scope) {
 			$scope.people.length > 1 &&
 			$scope.hasConsensus();
 
-		if(!consensus) {
+		// reveal & consensus
+		if(consensus) {
+			$scope.flipCards(function() { done(true, true); });
+		} else {
 			return done(true, false);
 		}
+
+	};
+
+	$scope.flipCards = function(done) {
+		$scope.lockUI = true;
+		$scope.$apply(); // no debounce
 			
-		// reveal & consensus
 		var cards = $('#mainList .pokerCardLg');
+
+		// $.each(cards, function(index, card) {			
+		// 	$(card)
+		// 	.velocity({rotateY: '90deg'}, {duration: 1000, delay: index * 500})
+		// 		.velocity({rotateY: '-90deg'}, {duration: 1, complete: function() {
+		// 			$scope.reveal = true;
+		// 			$scope.$apply(); // no debounce
+
+		// 			cards.velocity({rotateY: '0deg'}, {duration: 1000, complete: function() {
+		// 				done();
+		// 			}});
+				
+		// 	}});
+		// });
+
 		cards.velocity({rotateY: '90deg'}, {duration: 1000, complete: function() {
 			cards.velocity({rotateY: '-90deg'}, {duration: 1, complete: function() {
 				$scope.reveal = true;
 				$scope.$apply(); // no debounce
 
 				cards.velocity({rotateY: '0deg'}, {duration: 1000, complete: function() {
-					done(true, true);
+					done();
 				}});
 			}});
 		}});
-	},
+	};
 
 	$scope.applyStateChange = function(eventObj) {
 		$scope.consensus = false;
@@ -281,17 +312,37 @@ pokerApp.controller('mainCtrl', function ($scope) {
 			$scope.autoSizeMainList();
 		},
 
+		log: [],
 		data: null,
 		showData: false,
 		enableData: function(show) {
 			console.log('enableData');
-			$scope.debug.data = (new Date()).toString();
+			var data = {
+				_hangoutId: gapi.hangout.getHangoutId(),
+				_log: $scope.debug.log
+			};
+			var props = Object.getOwnPropertyNames($scope);
+			for (var i = 0; i < props.length; i++) {
+				var name = props[i];
+				if(!name.startsWith("$") && 
+					name !== 'this' && 
+					name !== 'aniElements' && 
+					name !== 'debug' &&
+					typeof($scope[name]) !== 'function') {
+					data[name] = $scope[name];
+				}
+			}
+
+			console.log(data);
+			$scope.debug.data = JSON.stringify(data, null, '  ');
 			$scope.debug.showData = show;
 		}
 	};
 
 	gapi.hangout.onApiReady.add(function(eventObj){
+		$scope.debug.log.push('onApiReady('+eventObj.isApiReady+')');
 		if (eventObj.isApiReady) {
+
 
 			var participants = gapi.hangout.getParticipants();
 			var state = gapi.hangout.data.getState();
@@ -313,16 +364,19 @@ pokerApp.controller('mainCtrl', function ($scope) {
 	});
 
 	gapi.hangout.data.onStateChanged.add(function(eventObj) {
+		$scope.debug.log.push('onStateChanged');
 		$scope.applyStateChange(eventObj);
 	});
 
 	gapi.hangout.onParticipantsChanged.add(function(eventObj) {
+		$scope.debug.log.push('onParticipantsChanged');
 		$scope.applyParticipants(eventObj.participants);
 		$scope.update();
 		$scope.autoSizeMainList();
 	});
 
 	gapi.hangout.onParticipantsRemoved.add(function(eventObj) {
+		$scope.debug.log.push('onParticipantsRemoved');
 		for (var e = eventObj.removedParticipants.length - 1; e >= 0; e--) {
 			for (var s = $scope.people.length - 1; s >= 0; s--) {
 				if(eventObj.removedParticipants[e].id == $scope.people[s].id) {
@@ -341,3 +395,6 @@ pokerApp.controller('mainCtrl', function ($scope) {
 		$scope.update();
 	}, 500));
 });
+
+
+

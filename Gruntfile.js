@@ -76,7 +76,7 @@ module.exports = function(grunt) {
 		}
 	});
 
-	grunt.registerTask('inc-ver', function() {
+	grunt.registerTask('inc-version', function() {
 		var parts = grunt.config.data.pkg.version.split('.');
 		var ver = parseInt(parts[2]);
 		if(isNaN(ver)) {
@@ -102,6 +102,6 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-copy');
 	grunt.loadNpmTasks('grunt-contrib-watch');
 
-	grunt.registerTask('default', ['inc-ver', 'icon-data', 'copy:main', 'insert', 'copy:deploy']);
+	grunt.registerTask('default', ['inc-version', 'icon-data', 'copy:main', 'insert', 'copy:deploy']);
 };
 
