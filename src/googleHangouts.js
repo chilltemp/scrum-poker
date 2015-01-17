@@ -1,70 +1,46 @@
 var chillweb = {};
 chillweb.googleHangouts = angular.module('googleHangouts', []);
 
-chillweb.EventController = function(target, name) {
-	this._target = target;
-	this._name = name;
-};
-
-chillweb.EventController.prototype.add = function(callback) {
-	this._target.addListener(this.name, callback);
-};
-
-chillweb.EventController.prototype.remove = function(callback) {
-	this._target.removeListener(this.name, callback);
-};
-
-chillweb.EventController.prototype.emit = function(args) {
-	this._target.emitEvent(this.name, args);
-};
-
-chillweb.CommandController = function(target) {
-	this._target = target;
-};
-
-chillweb.CommandController.prototype.add = function(name, callback) {
-	if(!name) {
-		throw 'Command name is required.'
-	}
-	
-	this._target.addListener('!' + this.name, callback);
-};
-
-chillweb.CommandController.prototype.remove = function(name, callback) {
-	if(!name) {
-		throw 'Command name is required.'
-	}
-	
-	this._target.removeListener('!' + this.name, callback);
-};
-
-chillweb.CommandController.prototype.emit = function(name, args) {
-	if(!name) {
-		throw 'Command name is required.'
-	}
-
-	var evt = name.indexOf('!') === 0 ? name : '!' + name;
-	this._target.emitEvent(evt, args);
-};
-
 
 chillweb.Hangout = function() {
+	this._initQueue = [];
 	this.isReady = false;
 	this.myId = null;
 	this.participants = [];
-	this.onUpdate = new chillweb.EventController(this, 'update'); // param: none
-	this.onNewParticipant = new chillweb.EventController(this, 'newParticipant') // param: newParticipant
-	this.commands = new chillweb.CommandController();
-	this.state = {}; // TODO: default state
+	// this.onUpdate = new chillweb.EventController(this, 'update'); // param: none
+	// this.onNewParticipant = new chillweb.EventController(this, 'newParticipant') // param: newParticipant
+	// this.commands = new chillweb.NamedEventController();
+	this.myState = {}; // TODO: default state
 };
 
 _.extend(chillweb.Hangout.prototype, EventEmitter.prototype);
 
-chillweb.Hangout.prototype.sendState: function() {
+chillweb.Hangout.prototype._emitUpdate = function() {
+	this.emit('update');
+}
+chillweb.Hangout.prototype._emitUpdate = _.debounce(chillweb.Hangout.prototype._emitUpdate, 100);
 
+
+chillweb.Hangout.prototype.sendState = function() {
+	if(this.isReady) {
+		gapi.hangout.data.setValue('!' + this.myId, JSON.stringify(this.myState));
+	} // else, will auto-send when ready
+};
+chillweb.Hangout.prototype.sendState = _.debounce(chillweb.Hangout.prototype.sendState, 250);
+
+
+chillweb.Hangout.prototype.sendEvent = function(key, value) {
+	if(this.isReady) {
+		gapi.hangout.data.setValue(key, JSON.stringify(value));
+	} else {
+		this._initQueue.push(function() {
+			this.sendEvent(key, value);
+		}.bind(this));
+	}
 };
 
-chillweb.Hangout.prototype._setParticipants: function(participants, action) {
+
+chillweb.Hangout.prototype._setParticipants = function(participants, action) {
 	/* actions:
 		 	 sync = insert/update participants as online, & mark extras offline
 		 	 update = insert/update participants as online
@@ -97,7 +73,7 @@ chillweb.Hangout.prototype._setParticipants: function(participants, action) {
 			_.merge(newParticipant, current);
 			newParticipant.$online = markOnline;
 
-			this.onNewParticipant.emit(newParticipant);
+			this.emit('beforeAddParticipant', newParticipant);
 			this.participants.push(newParticipant);
 			// 	id: participants[e].id,
 			// 	displayName: participants[e].person.displayName,
@@ -158,7 +134,17 @@ chillweb.googleHangouts.factory('hangout', function() {
 
 			hangout._setParticipants(participants, 'sync');
 			hangout.myId = gapi.hangout.getLocalParticipantId();
+
 			hangout.isReady = true;
+			while(hangout._initQueue.length) {
+				var fn = hangout._initQueue.shift();
+				fn();
+			}
+
+			hangout.sendState();
+			hangout.emit('onApiReady');
+			hangout._emitUpdate();
+
 			// Create a similar object to the state change event
 		// 	var e = { addedKeys: [] };
 		// 	for(var key in state) {
@@ -178,25 +164,28 @@ chillweb.googleHangouts.factory('hangout', function() {
 		console.log('onStateChanged', eventObj);
 		for (var i = 0; i < eventObj.addedKeys.length; i++) {
 			var item = eventObj.addedKeys[i];
+			var value = JSON.parse(item.value);
 
-			if(item.key.indexOf('!') === 0) {
-				hangout.commands.emit(item.key, JSON.parse(item.value));
-			} else {
+			hangout.emit(item.key, value);
+
+			if(item.key.indexOf('!') !== 0) {
 				var p = [{
 					id: item.key,
-					$state: JSON.parse(item.value)
+					$state: value;
 				}];
 
 				hangout._setParticipants(p, 'update');
 			}
 		};
 
+		hangout._emitUpdate();
 		// $scope.applyStateChange(eventObj);
 	});
 
 	gapi.hangout.onParticipantsChanged.add(function(eventObj) {
 		console.log('onParticipantsChanged', eventObj);
 		hangout._setParticipants(eventObj.participants, 'sync');
+		hangout._emitUpdate();
 		// $scope.applyParticipants(eventObj.participants);
 		// $scope.update();
 		// $scope.autoSizeMainList();

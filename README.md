@@ -23,3 +23,12 @@
 	grunt
 	grunt watch
 
+# Hangouts Service
+## Events
+* onApiReady
+* update
+* beforeAddParticipant
+* participant state change events are their id prefixed by '!' 
+* send custom events to all participants using hangout.sendEvent(key, value)
+
+
