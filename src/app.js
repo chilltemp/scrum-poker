@@ -27,9 +27,10 @@ function rgbToHex(rgb) {
 	return b;
 }
 
-var pokerApp = angular.module('scrumPokerHangout', ['ngAnimate']);
 
-pokerApp.controller('mainCtrl', function ($scope) {
+var pokerApp = angular.module('scrumPokerHangout', ['ngAnimate', 'gHangouts']);
+
+pokerApp.controller('mainCtrl', ['$scope', 'hangout', function ($scope, hangout) {
 	pokerApp.debug = $scope;
 
 	$scope.icons = {};
@@ -237,55 +238,8 @@ pokerApp.controller('mainCtrl', function ($scope) {
 		}});
 	};
 
-	$scope.applyStateChange = function(eventObj) {
-		$scope.consensus = false;
 
-		for (var e = eventObj.addedKeys.length - 1; e >= 0; e--) {
 
-			if(eventObj.addedKeys[e].key === '!resetAll') {
-				if(eventObj.addedKeys[e].value != $scope.lastReset) {
-					$scope.resetMe(eventObj.addedKeys[e].value);
-				}
-			} else if(eventObj.addedKeys[e].key === '!reveal') {
-				var r = JSON.parse(eventObj.addedKeys[e].value);
-				$scope.applyReveal(r);
-			} else {
-				for (var s = $scope.people.length - 1; s >= 0; s--) {
-					if( $scope.people[s].id === eventObj.addedKeys[e].key ) {
-						$scope.people[s].state = JSON.parse(eventObj.addedKeys[e].value);
-					}
-				}
-			}
-		}
-
-		$scope.update();
-	};
-
-	$scope.applyParticipants = function(participants) {
-		for (var e = participants.length - 1; e >= 0; e--) {
-
-			var found = false;			
-			for (var s = $scope.people.length - 1; s >= 0; s--) {
-				if( $scope.people[s].id === participants[e].id ) {
-					found = true;
-					$scope.people[s].hasAppEnabled = participants[e].hasAppEnabled;
-					$scope.people[s].online = true;
-				}
-			}
-
-			if(!found) {
-				$scope.people.push({
-					id: participants[e].id,
-					displayName: participants[e].person.displayName,
-					image: participants[e].person.image.url,
-					state: createDefaultState(),
-					online: true
-				});
-			}
-		} // for: eventObj.participants
-
-		$scope.update();
-	};
 
 	$scope.resetMe = function(resetTime) {
 		$scope.lastReset = resetTime;
@@ -339,62 +293,14 @@ pokerApp.controller('mainCtrl', function ($scope) {
 		}
 	};
 
-	gapi.hangout.onApiReady.add(function(eventObj){
-		$scope.debug.log.push('onApiReady('+eventObj.isApiReady+')');
-		if (eventObj.isApiReady) {
 
-
-			var participants = gapi.hangout.getParticipants();
-			var state = gapi.hangout.data.getState();
-
-			$scope.applyParticipants(participants);
-
-			// Create a similar object to the state change event
-			var e = { addedKeys: [] };
-			for(var key in state) {
-				if (state.hasOwnProperty(key)) {
-					e.addedKeys.push({ key: key, value: state[key] });
-				}
-			}
-			$scope.applyStateChange(e);
-		}
-
-		$scope.update();
-		$scope.autoSizeMainList();
-	});
-
-	gapi.hangout.data.onStateChanged.add(function(eventObj) {
-		$scope.debug.log.push('onStateChanged');
-		$scope.applyStateChange(eventObj);
-	});
-
-	gapi.hangout.onParticipantsChanged.add(function(eventObj) {
-		$scope.debug.log.push('onParticipantsChanged');
-		$scope.applyParticipants(eventObj.participants);
-		$scope.update();
-		$scope.autoSizeMainList();
-	});
-
-	gapi.hangout.onParticipantsRemoved.add(function(eventObj) {
-		$scope.debug.log.push('onParticipantsRemoved');
-		for (var e = eventObj.removedParticipants.length - 1; e >= 0; e--) {
-			for (var s = $scope.people.length - 1; s >= 0; s--) {
-				if(eventObj.removedParticipants[e].id == $scope.people[s].id) {
-					$scope.people[s].online = false;
-				}
-			}
-		}
-
-		$scope.update();
-		$scope.autoSizeMainList();
-	});
 
 	$(window).resize(_.debounce(function() {
 		$scope.autoSizeMainList();
 		$scope.animate = true;
 		$scope.update();
 	}, 500));
-});
+}]);
 
 
 

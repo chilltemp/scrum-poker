@@ -3,6 +3,9 @@
 ## To Do
 * Save user preferences
 * Make Hangouts interface an Angular service
+** Uses:
+*** lodash
+*** EventEmitter
 * Alternate decks/cards
 * Card back icons
 ** More

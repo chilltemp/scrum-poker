@@ -68,6 +68,11 @@ module.exports = function(grunt) {
 				dest: "build/app.xml",
 				match: "/* ###app.js### */"
 			},
+			hangout_js: {
+				src: "src/googleHangouts.js",
+				dest: "build/app.xml",
+				match: "/* ###googleHangouts.js### */"
+			},
 			icons: {
 				src: "build/icons.json",
 				dest: "build/app.xml",
