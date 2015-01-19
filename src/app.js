@@ -30,12 +30,20 @@ function rgbToHex(rgb) {
 
 var pokerApp = angular.module('scrumPokerHangout', ['ngAnimate', 'angular-locker', 'angular-hangouts']);
 
-// pokerApp.config(['lockerProvider', function config(lockerProvider) {
-//   lockerProvider.setDefaultDriver('local')
-//                 .setDefaultNamespace('scrumPoker')
-//                 .setSeparator('.')
-//                 .setEventsEnabled(false);
-// }]);
+pokerApp.config(['lockerProvider','hangoutProvider', function config(lockerProvider, hangoutProvider) {
+  lockerProvider.setDefaultDriver('local')
+                .setDefaultNamespace('scrumPoker')
+                // .setSeparator('.')
+                .setEventsEnabled(false);
+
+  hangoutProvider.setDefaultState({
+		cardSelected: 'None',
+		cardHistory: [],
+		needBreak: false,
+		cardBack: 'cardBackDefault'
+	});
+
+}]);
 
 pokerApp.controller('mainCtrl', ['$scope', 'locker', 'hangout', function ($scope, locker, hangout) {
 	pokerApp.debug = $scope;
@@ -46,8 +54,7 @@ pokerApp.controller('mainCtrl', ['$scope', 'locker', 'hangout', function ($scope
 	$scope.iconCategory = $scope.icons['default'];
 
 	$scope.cards = ["0","Half","1","2","3","5","8","13","20","40","100","Inf","Break","None"];
-	$scope.people = [];
-	$scope.state = createDefaultState();
+	// $scope.state = createDefaultState();
 	$scope.reveal = false;
 	$scope.animate = false;
 	$scope.showConfig = false;
@@ -73,10 +80,12 @@ pokerApp.controller('mainCtrl', ['$scope', 'locker', 'hangout', function ($scope
 	};
 
 	// Initialize the hangout
-	// $scope.participants = hangout.participants;
-	// hangout.on('update', $scope.update);
+	$scope.participants = hangout.participants;
+	$scope.state = hangout.myState;
 
-	$scope.update = _.debounce($scope.$apply, 100);
+	$scope.update = _.debounce(function() { $scope.$apply(); }, 100);
+	hangout.on('update', $scope.update);
+
 
 	$scope.autoSizeMainList = _.debounce(function() {
 		var mainList = $("#mainList");

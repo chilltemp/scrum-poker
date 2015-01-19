@@ -25,7 +25,7 @@
         </div>
         <div id="mainList">
             <ul class="person">
-                <li ng-repeat="person in people | orderBy:'displayName' | filter:{online: true}" ng-class="{animate: $parent.animate}">
+                <li ng-repeat="person in participants | orderBy:'displayName' | filter:{$online: true}" ng-class="{animate: $parent.animate}">
                     <img class="avatar" src="{{person.image}}" alt="avatar">
                     <div class="infoBlock">
                         <div class="pokerCardLg" ng-class="{cardStateNone: person.state.cardSelected == 'None', consensus: consensus}">
