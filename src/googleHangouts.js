@@ -61,6 +61,7 @@ chillweb.Hangout.prototype._setParticipants = function(participants, action) {
 	*/
 	var markOnline = action === 'sync' || action === 'update';
 	var markExtrasOffline = action === 'sync';
+	this._log('_setParticipants', participants, action, markOnline, markExtrasOffline);
 
 	for (var e = participants.length - 1; e >= 0; e--) {
 		var found = false;			
@@ -98,7 +99,7 @@ chillweb.Hangout.prototype._setParticipants = function(participants, action) {
 	} // for: eventObj.participants
 
 	if(markExtrasOffline) {
-		var known = _.values(participants, 'id');
+		var known = _.pluck(participants, 'id');
 
 		_.where(this.participants, function filter(item) {
 			// is unknown?

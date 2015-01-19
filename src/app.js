@@ -5,14 +5,6 @@ if (typeof String.prototype.startsWith != 'function') {
   };
 }
 
-function createDefaultState() {
-	return {
-		cardSelected: 'None',
-		cardHistory: [],
-		needBreak: false,
-		cardBack: 'cardBackDefault'
-	};
-}
 
 function rgbToHex(rgb) {
 	// http://stackoverflow.com/a/13070198
@@ -83,7 +75,10 @@ pokerApp.controller('mainCtrl', ['$scope', 'locker', 'hangout', function ($scope
 	$scope.participants = hangout.participants;
 	$scope.state = hangout.myState;
 
-	$scope.update = _.debounce(function() { $scope.$apply(); }, 100);
+	$scope.update = _.debounce(function() { 
+		console.log('scope', $scope);
+		$scope.$apply(); 
+	}, 100);
 	hangout.on('update', $scope.update);
 
 

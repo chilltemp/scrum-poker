@@ -12,7 +12,7 @@
         </div>
         <h1 class="title">Scrum Poker <span class="ver">###version###</span></h1>
 
-        <div id="myCards">
+        <div id="myCards" ng-cloak>
             <div class="pokerCardSm" ng-repeat="card in cards" ng-click="selectCard(card)" 
                 ng-class="{cardStateNone: card == 'None', cardStateSelected: card == state.cardSelected, cardStateToggle: card == 'Break' &amp;&amp; state.needBreak}">
                 <div class="card{{card}}"></div>
@@ -23,30 +23,30 @@
             <button class="iconBtn" ng-click="showAll(false)" ng-show="reveal" title="Will hide all cards from everyone."><span class="fa fa-eye"/></button>
             <button class="iconBtn" ng-click="showAll(true)" ng-hide="reveal" title="Will show all cards to everyone."><span class="fa fa-eye-slash"/></button>
         </div>
-        <div id="mainList">
+        <div id="mainList" ng-cloak>
             <ul class="person">
-                <li ng-repeat="person in participants | orderBy:'displayName' | filter:{$online: true}" ng-class="{animate: $parent.animate}">
-                    <img class="avatar" src="{{person.image}}" alt="avatar">
+                <li ng-repeat="p in participants | orderBy:'displayName' | filter:{$online: true}" ng-class="{animate: $parent.animate}">
+                    <img class="avatar" ng-src="{{p.person.image.url}}" alt="avatar">
                     <div class="infoBlock">
-                        <div class="pokerCardLg" ng-class="{cardStateNone: person.state.cardSelected == 'None', consensus: consensus}">
-                            <div ng-show="reveal" class="card{{person.state.cardSelected}}"></div>
-                            <div ng-show="!reveal && person.state.cardSelected == 'None'" class="cardNone"></div>
-                            <div ng-show="!reveal && person.state.cardSelected != 'None'" class="{{person.state.cardBack}}"></div>
+                        <div class="pokerCardLg" ng-class="{cardStateNone: p.$state.cardSelected == 'None', consensus: consensus}">
+                            <div ng-show="reveal" class="card{{p.$state.cardSelected}}"></div>
+                            <div ng-show="!reveal && p.$state.cardSelected == 'None'" class="cardNone"></div>
+                            <div ng-show="!reveal && p.$state.cardSelected != 'None'" class="{{p.$state.cardBack}}"></div>
                         </div>
-                        <div class="pokerCardSliceLg" ng-show="reveal" ng-repeat="card in person.state.cardHistory track by $index">
+                        <div class="pokerCardSliceLg" ng-show="reveal" ng-repeat="card in p.$state.cardHistory track by $index">
                             <div class="card{{card}}"></div>
                         </div>
-                        <div class="pokerCardLg" ng-show="person.state.needBreak">
+                        <div class="pokerCardLg" ng-show="p.$state.needBreak">
                             <div class="cardBreak"></div>
                         </div>
-                        <p class="displayName" ng-class="{noApp: !person.hasAppEnabled}">{{person.displayName}}</p>
-                        <p class="noApp" ng-hide="person.hasAppEnabled">Scrum Poker not loaded.</p>
+                        <p class="displayName" ng-class="{noApp: !p.hasAppEnabled}">{{p.person.displayName}}</p>
+                        <p class="noApp" ng-hide="p.hasAppEnabled">Scrum Poker not loaded.</p>
                     </div>
                 </li>
             </ul>
         </div>
 
-        <div class="dialogOuter" ng-show="showConfig">
+        <div class="dialogOuter" ng-show="showConfig" ng-cloak>
             <div class="dialogMiddle">
                 <div class="dialogInner config">
                     <h2>Config</h2>
@@ -83,7 +83,7 @@
             </div>
         </div>
 
-        <div class="dialogOuter" ng-show="debug.showData">
+        <div class="dialogOuter" ng-show="debug.showData" ng-cloak>
             <div class="dialogMiddle">
                 <div class="dialogInner config">
                     <h2>Debug</h2>
