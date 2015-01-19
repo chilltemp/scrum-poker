@@ -46,12 +46,25 @@ pokerApp.controller('mainCtrl', ['$scope', 'locker', 'hangout', function ($scope
 	$scope.iconCategory = $scope.icons['default'];
 
 	$scope.cards = ["0","Half","1","2","3","5","8","13","20","40","100","Inf","Break","None"];
-	// $scope.state = createDefaultState();
+	
+	// Connect scope to hangout
+	$scope.participants = hangout.participants;
+	$scope.state = hangout.myState;
+
 	$scope.reveal = false;
 	$scope.animate = false;
 	$scope.showConfig = false;
 	$scope.lockUI = false;
-	/* Additional $scope properties defined in the resetMe function below. */
+
+	$scope.resetMe = function(resetTime) {
+		$scope.lastReset = resetTime;
+		$scope.consensus = false;
+		$scope.selectCard('None', resetTime === null); // true on first reset
+		$scope.state.cardHistory = [];
+		$scope.revealsSinceReset = 0;
+
+		$scope.update();
+	};
 	
 	// Configuration
 	// TODO: https://github.com/tymondesigns/angular-locker
@@ -71,15 +84,6 @@ pokerApp.controller('mainCtrl', ['$scope', 'locker', 'hangout', function ($scope
 		// $scope.sync();
 	};
 
-	// Initialize the hangout
-	$scope.participants = hangout.participants;
-	$scope.state = hangout.myState;
-
-	$scope.update = _.debounce(function() { 
-		console.log('scope', $scope);
-		$scope.$apply(); 
-	}, 100);
-	hangout.on('update', $scope.update);
 
 
 	$scope.autoSizeMainList = _.debounce(function() {
@@ -96,33 +100,33 @@ pokerApp.controller('mainCtrl', ['$scope', 'locker', 'hangout', function ($scope
 		}
 	}, 100);
 
-/*
+
 	$scope.selectCard = function(card, force) {
-		if(!force && $scope.state.cardSelected === card) {
+		if(!force && hangout.myState.cardSelected === card) {
 			return;
 		}
 	
 
-		if($scope.reveal && $scope.state.cardSelected && $scope.state.cardSelected !== "None") {
-			$scope.state.cardHistory.unshift($scope.state.cardSelected);
+		if($scope.reveal && hangout.myState.cardSelected && hangout.myState.cardSelected !== "None") {
+			hangout.myState.cardHistory.unshift(hangout.myState.cardSelected);
 		}
 
 		if(card === "Break") {
-			$scope.state.needBreak = !$scope.state.needBreak;
+			hangout.myState.needBreak = !hangout.myState.needBreak;
 		} else {
-			$scope.state.cardSelected = card;
+			hangout.myState.cardSelected = card;
 
-			if(card === 'None') {
-				$scope.flashCard();
-			} else {
-				$scope.stopAnimations();
-			}
+			// if(card === 'None') {
+			// 	$scope.flashCard();
+			// } else {
+			// 	$scope.stopAnimations();
+			// }
 		}
 
 		$scope.update();
-		$scope.sync();
+		hangout.sendMyState();
 	};
-
+/*
 	$scope.aniElements = [];
 	$scope.stopAnimations = function() {
 
@@ -156,12 +160,15 @@ pokerApp.controller('mainCtrl', ['$scope', 'locker', 'hangout', function ($scope
 
 	$scope.resetAll = function() {
 		// gapi.hangout.data.setValue('!resetAll', (JSON.stringify(new Date())));
+		hangout.sendEvent('resetAll', new Date());
 		$scope.showAll(false);
 	};
 
 	$scope.showAll = function(reveal) {
 		// gapi.hangout.data.setValue('!reveal', JSON.stringify(reveal));
-		// $scope.applyReveal(reveal);
+		$scope.applyReveal(reveal);
+		hangout.sendEvent('reveal', reveal);
+		
 	};
 
 	$scope.hasConsensus = function() {
@@ -188,45 +195,56 @@ pokerApp.controller('mainCtrl', ['$scope', 'locker', 'hangout', function ($scope
 	};
 /*
 	$scope.revealing = false;
-	$scope.toReveal = [];
+	$scope.toReveal = [];*/
 	$scope.applyReveal = function(value) {
-		if($scope.revealing) {
-			var v = value;
-			$scope.toReveal.push(function() { $scope.applyReveal(v); });
-			return;
-		}
+		$scope.reveal = value;
+		return;
 
-		$scope.revealing = true;
-		var done = function(r, c) {
-			$scope.reveal = r;
-			$scope.consensus = c;
-			$scope.revealing = false;
-			if($scope.toReveal.length) {
-				$scope.toReveal.pop()();
-			} else {
-				$scope.lockUI = false;
-				$scope.update();
-			}
-		};
+		// if($scope.revealing) {
+		// 	var v = value;
+		// 	$scope.toReveal.push(function() { $scope.applyReveal(v); });
+		// 	return;
+		// }
 
-		if(!value) {
-			return done(false, false);
-		}
+		// $scope.revealing = true;
+		// var done = function(r, c) {
+		// 	$scope.reveal = r;
+		// 	$scope.consensus = c;
+		// 	$scope.revealing = false;
+		// 	if($scope.toReveal.length) {
+		// 		$scope.toReveal.pop()();
+		// 	} else {
+		// 		$scope.lockUI = false;
+		// 		$scope.update();
+		// 	}
+		// };
 
-		$scope.revealsSinceReset++;
-		var consensus = $scope.revealsSinceReset === 1 && 
-			$scope.people.length > 1 &&
-			$scope.hasConsensus();
+		// if(!value) {
+		// 	return done(false, false);
+		// }
 
-		// reveal & consensus
-		if(consensus) {
-			$scope.flipCards(function() { done(true, true); });
-		} else {
-			return done(true, false);
-		}
+		// $scope.revealsSinceReset++;
+		// var consensus = $scope.revealsSinceReset === 1 && 
+		// 	$scope.people.length > 1 &&
+		// 	$scope.hasConsensus();
+
+		// // reveal & consensus
+		// if(consensus) {
+		// 	$scope.flipCards(function() { done(true, true); });
+		// } else {
+		// 	return done(true, false);
+		// }
 
 	};
 
+	$scope.applyReset = function(value) {
+		if($scope.lastReset === value) {
+			return;
+		}
+
+		$scope.resetMe(value);
+	};
+/*
 	$scope.flipCards = function(done) {
 		$scope.lockUI = true;
 		$scope.$apply(); // no debounce
@@ -261,16 +279,19 @@ pokerApp.controller('mainCtrl', ['$scope', 'locker', 'hangout', function ($scope
 */
 
 
+	// Initialize the hangout
+	$scope.participants = hangout.participants;
+	$scope.state = hangout.myState;
 
-	$scope.resetMe = function(resetTime) {
-		$scope.lastReset = resetTime;
-		$scope.consensus = false;
-		// $scope.selectCard('None', resetTime === null); // true on first reset
-		$scope.state.cardHistory = [];
-		$scope.revealsSinceReset = 0;
+	$scope.update = _.debounce(function() { 
+		console.log('scope', $scope);
+		$scope.$apply(); 
+	}, 100);
 
-		$scope.update();
-	};
+	hangout.on('update', $scope.update);
+	hangout.on('resetAll', $scope.applyReset);
+	hangout.on('reveal', $scope.applyReveal);
+
 	$scope.resetMe(null);
 /*
 	$scope.debug = {

@@ -194,9 +194,9 @@ chillweb.googleHangouts.provider('hangout', function() {
 
 					hangout.emit(item.key, value);
 
-					if(item.key.indexOf('!') !== 0) {
+					if(item.key.indexOf('!') === 0) {
 						var p = [{
-							id: item.key,
+							id: item.key.substring(1),
 							$state: value
 						}];
 
