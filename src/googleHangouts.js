@@ -1,9 +1,10 @@
 var chillweb = {};
-chillweb.googleHangouts = angular.module('googleHangouts', []);
+chillweb.googleHangouts = angular.module('angular-hangouts', []);
 
 
 chillweb.Hangout = function() {
 	this._initQueue = [];
+	this.debug = true;
 	this.isReady = false;
 	this.myId = null;
 	this.participants = [];
@@ -15,24 +16,35 @@ chillweb.Hangout = function() {
 
 _.extend(chillweb.Hangout.prototype, EventEmitter.prototype);
 
+chillweb.Hangout.prototype._log = function(/*args*/) {
+	if(this.debug) {
+		console.log.call(console, arguments);
+	}
+};
+
 chillweb.Hangout.prototype._emitUpdate = function() {
+	this._log('emit update');
 	this.emit('update');
-}
+};
 chillweb.Hangout.prototype._emitUpdate = _.debounce(chillweb.Hangout.prototype._emitUpdate, 100);
 
 
-chillweb.Hangout.prototype.sendState = function() {
+chillweb.Hangout.prototype.sendMyState = function() {
+	this._log('sendState', this.myState);
+
 	if(this.isReady) {
 		gapi.hangout.data.setValue('!' + this.myId, JSON.stringify(this.myState));
 	} // else, will auto-send when ready
 };
-chillweb.Hangout.prototype.sendState = _.debounce(chillweb.Hangout.prototype.sendState, 250);
+chillweb.Hangout.prototype.sendMyState = _.debounce(chillweb.Hangout.prototype.sendMyState, 250);
 
 
 chillweb.Hangout.prototype.sendEvent = function(key, value) {
 	if(this.isReady) {
+		this._log('sendEvent', key, value);
 		gapi.hangout.data.setValue(key, JSON.stringify(value));
 	} else {
+		this._log('sendEvent.queue', key);
 		this._initQueue.push(function() {
 			this.sendEvent(key, value);
 		}.bind(this));
@@ -125,70 +137,83 @@ chillweb.googleHangouts.factory('hangout', function() {
 	var hangout = new chillweb.Hangout();	
 
 	gapi.hangout.onApiReady.add(function(eventObj){		
-		console.log('onApiReady', eventObj);
-		if (eventObj.isApiReady) {
+		hangout._log('onApiReady', eventObj);
+		// try {
+			if (eventObj.isApiReady) {
 
 
-			var participants = gapi.hangout.getParticipants();
-			var state = gapi.hangout.data.getState();
+				var participants = gapi.hangout.getParticipants();
+				var state = gapi.hangout.data.getState();
 
-			hangout._setParticipants(participants, 'sync');
-			hangout.myId = gapi.hangout.getLocalParticipantId();
+				hangout._setParticipants(participants, 'sync');
+				hangout.myId = gapi.hangout.getLocalParticipantId();
 
-			hangout.isReady = true;
-			while(hangout._initQueue.length) {
-				var fn = hangout._initQueue.shift();
-				fn();
+				hangout.isReady = true;
+				while(hangout._initQueue.length) {
+					var fn = hangout._initQueue.shift();
+					fn();
+				}
+
+				hangout.sendMyState();
+				hangout.emit('onApiReady');
+				hangout._emitUpdate();
+
+				// Create a similar object to the state change event
+			// 	var e = { addedKeys: [] };
+			// 	for(var key in state) {
+			// 		if (state.hasOwnProperty(key)) {
+			// 			e.addedKeys.push({ key: key, value: state[key] });
+			// 		}
+			// 	}
+			// 	$scope.applyStateChange(e);
+			// }
+
+			// $scope.update();
+			// $scope.autoSizeMainList();
 			}
-
-			hangout.sendState();
-			hangout.emit('onApiReady');
-			hangout._emitUpdate();
-
-			// Create a similar object to the state change event
-		// 	var e = { addedKeys: [] };
-		// 	for(var key in state) {
-		// 		if (state.hasOwnProperty(key)) {
-		// 			e.addedKeys.push({ key: key, value: state[key] });
-		// 		}
-		// 	}
-		// 	$scope.applyStateChange(e);
+		// } catch(e) {
+		// 	hangout._log('onApiReady', e, e.stack);
 		// }
-
-		// $scope.update();
-		// $scope.autoSizeMainList();
-		}
 	});
 
 	gapi.hangout.data.onStateChanged.add(function(eventObj) {
-		console.log('onStateChanged', eventObj);
-		for (var i = 0; i < eventObj.addedKeys.length; i++) {
-			var item = eventObj.addedKeys[i];
-			var value = JSON.parse(item.value);
+		hangout._log('onStateChanged', eventObj);
 
-			hangout.emit(item.key, value);
+		try {
+			for (var i = 0; i < eventObj.addedKeys.length; i++) {
+				var item = eventObj.addedKeys[i];
+				var value = JSON.parse(item.value);
 
-			if(item.key.indexOf('!') !== 0) {
-				var p = [{
-					id: item.key,
-					$state: value;
-				}];
+				hangout.emit(item.key, value);
 
-				hangout._setParticipants(p, 'update');
+				if(item.key.indexOf('!') !== 0) {
+					var p = [{
+						id: item.key,
+						$state: value
+					}];
+
+					hangout._setParticipants(p, 'update');
+				}
 			}
-		};
 
-		hangout._emitUpdate();
-		// $scope.applyStateChange(eventObj);
+			hangout._emitUpdate();
+			// $scope.applyStateChange(eventObj);
+			} catch(e) {
+			hangout._log(e);
+		}
 	});
 
 	gapi.hangout.onParticipantsChanged.add(function(eventObj) {
-		console.log('onParticipantsChanged', eventObj);
-		hangout._setParticipants(eventObj.participants, 'sync');
-		hangout._emitUpdate();
-		// $scope.applyParticipants(eventObj.participants);
-		// $scope.update();
-		// $scope.autoSizeMainList();
+		try {
+			hangout._log('onParticipantsChanged', eventObj);
+			hangout._setParticipants(eventObj.participants, 'sync');
+			hangout._emitUpdate();
+			// $scope.applyParticipants(eventObj.participants);
+			// $scope.update();
+			// $scope.autoSizeMainList();
+		} catch(e) {
+			hangout._log(e);
+		}
 	});
 
 	// gapi.hangout.onParticipantsRemoved.add(function(eventObj) {

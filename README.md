@@ -31,4 +31,9 @@
 * participant state change events are their id prefixed by '!' 
 * send custom events to all participants using hangout.sendEvent(key, value)
 
+## Tips
+* Whenever possible, link to scripts from a CDN.  Such as:
+    * https://developers.google.com/speed/libraries/devguide
+    * http://cdnjs.com
+    * http://jsdelivr.com
 

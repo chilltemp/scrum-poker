@@ -33,7 +33,7 @@ module.exports = function(grunt) {
     	deploy: {
     		files: [
     			{ expand: true, cwd: 'build/', src: 'app.xml', 
-    				dest: '/Volumes/myfiles.messagingengine.com/hangouts/',
+    				dest: '/Volumes/myfiles.messagingengine.com-1/hangouts/',
     				rename: function(dest, src) { 
     					var v = grunt.config.data.pkg.version.replace('v','').split('.');    					
     					var name = 'scrum-poker-' + v[0] + '-' + v[1];

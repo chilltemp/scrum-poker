@@ -28,9 +28,16 @@ function rgbToHex(rgb) {
 }
 
 
-var pokerApp = angular.module('scrumPokerHangout', ['ngAnimate', 'gHangouts']);
+var pokerApp = angular.module('scrumPokerHangout', ['ngAnimate', 'angular-locker', 'angular-hangouts']);
 
-pokerApp.controller('mainCtrl', ['$scope', 'hangout', function ($scope, hangout) {
+// pokerApp.config(['lockerProvider', function config(lockerProvider) {
+//   lockerProvider.setDefaultDriver('local')
+//                 .setDefaultNamespace('scrumPoker')
+//                 .setSeparator('.')
+//                 .setEventsEnabled(false);
+// }]);
+
+pokerApp.controller('mainCtrl', ['$scope', 'locker', 'hangout', function ($scope, locker, hangout) {
 	pokerApp.debug = $scope;
 
 	$scope.icons = {};
@@ -45,20 +52,35 @@ pokerApp.controller('mainCtrl', ['$scope', 'hangout', function ($scope, hangout)
 	$scope.animate = false;
 	$scope.showConfig = false;
 	$scope.lockUI = false;
-	$scope.cfg = {
+	/* Additional $scope properties defined in the resetMe function below. */
+	
+	// Configuration
+	// TODO: https://github.com/tymondesigns/angular-locker
+	$scope.cfg = { 
 		smSize: 16,
 		lgMinSize: 16,
 		lgMaxSize: 64,
 		lgAutoSize: true,
 		cardBack: 'cardBackDefault'
 	};
-	/* Additional properties defined in the resetMe function below. */
 
+	$scope.applyConfig = function() {
+		$scope.state.cardBack = $scope.cfg.cardBack;
+		$('#myCards').css({ 'font-size': $scope.cfg.smSize +'px'});
+		$scope.autoSizeMainList();
+		$scope.showConfig = false;
+		// $scope.sync();
+	};
+
+	// Initialize the hangout
+	// $scope.participants = hangout.participants;
+	// hangout.on('update', $scope.update);
 
 	$scope.update = _.debounce($scope.$apply, 100);
 
 	$scope.autoSizeMainList = _.debounce(function() {
 		var mainList = $("#mainList");
+		// TODO: Better angular objects to use?
 		var w = $(window);
 		var d = $(document);
 
@@ -70,14 +92,7 @@ pokerApp.controller('mainCtrl', ['$scope', 'hangout', function ($scope, hangout)
 		}
 	}, 100);
 
-	$scope.applyConfig = function() {
-		$scope.state.cardBack = $scope.cfg.cardBack;
-		$('#myCards').css({ 'font-size': $scope.cfg.smSize +'px'});
-		$scope.autoSizeMainList();
-		$scope.showConfig = false;
-		$scope.sync();
-	};
-
+/*
 	$scope.selectCard = function(card, force) {
 		if(!force && $scope.state.cardSelected === card) {
 			return;
@@ -131,20 +146,22 @@ pokerApp.controller('mainCtrl', ['$scope', 'hangout', function ($scope, hangout)
 		var key = gapi.hangout.getLocalParticipantId();
 		var value = JSON.stringify($scope.state);
 
-		gapi.hangout.data.setValue(key, value);
+		// gapi.hangout.data.setValue(key, value);
 	}, 250);
+*/
 
 	$scope.resetAll = function() {
-		gapi.hangout.data.setValue('!resetAll', (JSON.stringify(new Date())));
+		// gapi.hangout.data.setValue('!resetAll', (JSON.stringify(new Date())));
 		$scope.showAll(false);
 	};
 
 	$scope.showAll = function(reveal) {
-		gapi.hangout.data.setValue('!reveal', JSON.stringify(reveal));
-		$scope.applyReveal(reveal);
+		// gapi.hangout.data.setValue('!reveal', JSON.stringify(reveal));
+		// $scope.applyReveal(reveal);
 	};
 
 	$scope.hasConsensus = function() {
+		return false;/*
 		var card = null;
 		var cnt = 0;
 		var noneCnt = 0;
@@ -163,9 +180,9 @@ pokerApp.controller('mainCtrl', ['$scope', 'hangout', function ($scope, hangout)
 			cnt++;
 		}
 
-		return cnt > 2;
+		return cnt > 2;*/
 	};
-
+/*
 	$scope.revealing = false;
 	$scope.toReveal = [];
 	$scope.applyReveal = function(value) {
@@ -237,21 +254,21 @@ pokerApp.controller('mainCtrl', ['$scope', 'hangout', function ($scope, hangout)
 			}});
 		}});
 	};
-
+*/
 
 
 
 	$scope.resetMe = function(resetTime) {
 		$scope.lastReset = resetTime;
 		$scope.consensus = false;
-		$scope.selectCard('None', resetTime === null); // true on first reset
+		// $scope.selectCard('None', resetTime === null); // true on first reset
 		$scope.state.cardHistory = [];
 		$scope.revealsSinceReset = 0;
 
 		$scope.update();
 	};
 	$scope.resetMe(null);
-
+/*
 	$scope.debug = {
 		enabled: false,
 
@@ -292,12 +309,12 @@ pokerApp.controller('mainCtrl', ['$scope', 'hangout', function ($scope, hangout)
 			$scope.debug.showData = show;
 		}
 	};
-
+*/
 
 
 	$(window).resize(_.debounce(function() {
 		$scope.autoSizeMainList();
-		$scope.animate = true;
+		//$scope.animate = true;
 		$scope.update();
 	}, 500));
 }]);
