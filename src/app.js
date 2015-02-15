@@ -19,12 +19,18 @@ function rgbToHex(rgb) {
 	return b;
 }
 
-
+//debugger;
+// Version: ###version###
 var pokerApp = angular.module('scrumPokerHangout', ['ngAnimate', 'angular-locker', 'angular-hangouts']);
 
 pokerApp.config(['lockerProvider','hangoutProvider', function config(lockerProvider, hangoutProvider) {
-  lockerProvider.setDefaultDriver('local')
-                .setDefaultNamespace('scrumPoker')
+	var storageDriver = 'noop';
+	try { window.sessionStorage; storageDriver = 'session'; } catch(e) {}
+	try { window.localStorage; storageDriver = 'local'; } catch(e) {}
+
+	console.log('using', storageDriver);
+  lockerProvider.setDefaultDriver(storageDriver)
+  							.setDefaultNamespace('scrumPoker')
                 // .setSeparator('.')
                 .setEventsEnabled(false);
 

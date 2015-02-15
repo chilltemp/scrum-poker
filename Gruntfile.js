@@ -78,7 +78,16 @@ module.exports = function(grunt) {
 				dest: "build/app.xml",
 				match: "/* ###icons.json### */"
 			}
-		}
+		},
+	  notify: {
+	    done: {
+		    options: {
+		      title: "Scrum Poker", 
+		      duration: 3,
+	    		message: 'deployed: <%= pkg.version %>'
+		    }
+	    }
+	  }		
 	});
 
 	grunt.registerTask('inc-version', function() {
@@ -106,7 +115,8 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-insert');
 	grunt.loadNpmTasks('grunt-contrib-copy');
 	grunt.loadNpmTasks('grunt-contrib-watch');
+	grunt.loadNpmTasks('grunt-notify');
 
-	grunt.registerTask('default', ['inc-version', 'icon-data', 'copy:main', 'insert', 'copy:deploy']);
+	grunt.registerTask('default', ['inc-version', 'icon-data', 'copy:main', 'insert', 'copy:deploy', 'notify:done']);
 };
 

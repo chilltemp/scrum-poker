@@ -1,6 +1,6 @@
 {
   "name": "hangouts-scrum-poker",
-  "version": "v1.7.67",
+  "version": "v1.7.86",
   "private": true,
   "author": "Charles Hill",
   "devDependencies": {
@@ -8,6 +8,7 @@
     "grunt-contrib-copy": "^0.7.0",
     "grunt-contrib-watch": "^0.6.1",
     "grunt-insert": "^0.1.0",
+    "grunt-notify": "^0.4.1",
     "js-yaml": "^3.2.3"
   }
 }

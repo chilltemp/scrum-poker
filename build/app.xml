@@ -305,6 +305,10 @@ h1 .ver {
   position: fixed;
   bottom: 0;
 }
+
+[ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+  display: none !important;
+}
         </style>
     </head>
     <body ng-controller="mainCtrl">
@@ -313,7 +317,7 @@ h1 .ver {
         </div>
         <h1 class="title">Scrum Poker <span class="ver">###version###</span></h1>
 
-        <div id="myCards">
+        <div id="myCards" ng-cloak>
             <div class="pokerCardSm" ng-repeat="card in cards" ng-click="selectCard(card)" 
                 ng-class="{cardStateNone: card == 'None', cardStateSelected: card == state.cardSelected, cardStateToggle: card == 'Break' &amp;&amp; state.needBreak}">
                 <div class="card{{card}}"></div>
@@ -324,30 +328,30 @@ h1 .ver {
             <button class="iconBtn" ng-click="showAll(false)" ng-show="reveal" title="Will hide all cards from everyone."><span class="fa fa-eye"/></button>
             <button class="iconBtn" ng-click="showAll(true)" ng-hide="reveal" title="Will show all cards to everyone."><span class="fa fa-eye-slash"/></button>
         </div>
-        <div id="mainList">
+        <div id="mainList" ng-cloak>
             <ul class="person">
-                <li ng-repeat="person in people | orderBy:'displayName' | filter:{online: true}" ng-class="{animate: $parent.animate}">
-                    <img class="avatar" src="{{person.image}}" alt="avatar">
+                <li ng-repeat="p in participants | orderBy:'displayName' | filter:{$online: true}" ng-class="{animate: $parent.animate}">
+                    <img class="avatar" ng-src="{{p.person.image.url}}" alt="avatar">
                     <div class="infoBlock">
-                        <div class="pokerCardLg" ng-class="{cardStateNone: person.state.cardSelected == 'None', consensus: consensus}">
-                            <div ng-show="reveal" class="card{{person.state.cardSelected}}"></div>
-                            <div ng-show="!reveal && person.state.cardSelected == 'None'" class="cardNone"></div>
-                            <div ng-show="!reveal && person.state.cardSelected != 'None'" class="{{person.state.cardBack}}"></div>
+                        <div class="pokerCardLg" ng-class="{cardStateNone: p.$state.cardSelected == 'None', consensus: consensus}">
+                            <div ng-show="reveal" class="card{{p.$state.cardSelected}}"></div>
+                            <div ng-show="!reveal && p.$state.cardSelected == 'None'" class="cardNone"></div>
+                            <div ng-show="!reveal && p.$state.cardSelected != 'None'" class="{{p.$state.cardBack}}"></div>
                         </div>
-                        <div class="pokerCardSliceLg" ng-show="reveal" ng-repeat="card in person.state.cardHistory track by $index">
+                        <div class="pokerCardSliceLg" ng-show="reveal" ng-repeat="card in p.$state.cardHistory track by $index">
                             <div class="card{{card}}"></div>
                         </div>
-                        <div class="pokerCardLg" ng-show="person.state.needBreak">
+                        <div class="pokerCardLg" ng-show="p.$state.needBreak">
                             <div class="cardBreak"></div>
                         </div>
-                        <p class="displayName" ng-class="{noApp: !person.hasAppEnabled}">{{person.displayName}}</p>
-                        <p class="noApp" ng-hide="person.hasAppEnabled">Scrum Poker not loaded.</p>
+                        <p class="displayName" ng-class="{noApp: !p.hasAppEnabled}">{{p.person.displayName}}</p>
+                        <p class="noApp" ng-hide="p.hasAppEnabled">Scrum Poker not loaded.</p>
                     </div>
                 </li>
             </ul>
         </div>
 
-        <div class="dialogOuter" ng-show="showConfig">
+        <div class="dialogOuter" ng-show="showConfig" ng-cloak>
             <div class="dialogMiddle">
                 <div class="dialogInner config">
                     <h2>Config</h2>
@@ -384,7 +388,7 @@ h1 .ver {
             </div>
         </div>
 
-        <div class="dialogOuter" ng-show="debug.showData">
+        <div class="dialogOuter" ng-show="debug.showData" ng-cloak>
             <div class="dialogMiddle">
                 <div class="dialogInner config">
                     <h2>Debug</h2>
@@ -409,10 +413,184 @@ h1 .ver {
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
         <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular.js"></script>
         <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular-animate.js"></script>
-        <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.compat.min.js"></script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/js-yaml/3.0.2/js-yaml.min.js"></script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/velocity/1.1.0/velocity.min.js"></script>
+        <script src="//cdn.jsdelivr.net/eventemitter/4.2.11/EventEmitter.min.js"></script>
+        <!--script src="//cdn.jsdelivr.net/angular.locker/1.2.0/angular-locker.min.js"></script-->
+        <script src="//rawgit.com/chilltemp/angular-locker/master/src/angular-locker.js?"></script>
         <script>
+var chillweb = {};
+chillweb.googleHangouts = angular.module('angular-hangouts', []);
+
+
+chillweb.Hangout = function(state) {
+	this._defaultState = state || {};
+	this._initQueue = [];
+	this.debug = true;
+	this.isReady = false;
+	this.myId = null;
+	this.participants = [];
+	this.myState = _.cloneDeep(this._defaultState);
+};
+
+_.extend(chillweb.Hangout.prototype, EventEmitter.prototype);
+
+chillweb.Hangout.prototype._log = function(/*args*/) {
+	if(this.debug) {
+		console.log.apply(console, arguments);
+	}
+};
+
+chillweb.Hangout.prototype._emitUpdate = function() {
+	this._log('emit update');
+	this.emit('update');
+};
+chillweb.Hangout.prototype._emitUpdate = _.debounce(chillweb.Hangout.prototype._emitUpdate, 100);
+
+
+chillweb.Hangout.prototype.sendMyState = function() {
+	this._log('sendState', this.myState);
+
+	if(this.isReady) {
+		gapi.hangout.data.setValue(this.myId, JSON.stringify(this.myState));
+	} // else, will auto-send when ready
+};
+chillweb.Hangout.prototype.sendMyState = _.debounce(chillweb.Hangout.prototype.sendMyState, 250);
+
+
+chillweb.Hangout.prototype.sendEvent = function(key, value) {
+	if(this.isReady) {
+		this._log('sendEvent', key, value);
+		gapi.hangout.data.setValue(key, JSON.stringify(value));
+	} else {
+		this._log('sendEvent.queue', key);
+		this._initQueue.push(function() {
+			this.sendEvent(key, value);
+		}.bind(this));
+	}
+};
+
+
+chillweb.Hangout.prototype._setParticipants = function(participants, action) {
+	/* actions:
+		 	 sync = insert/update participants as online, & mark extras offline
+		 	 update = insert/update participants as online
+		 	 delete = insert/update participants as offline
+	*/
+	var markOnline = action === 'sync' || action === 'update';
+	var markExtrasOffline = action === 'sync';
+	this._log('_setParticipants', participants, action, markOnline, markExtrasOffline);
+
+	for (var e = participants.length - 1; e >= 0; e--) {
+		var found = false;			
+		var current = participants[e];
+
+		_.where(this.participants, { id: current.id }).forEach(function upsert(existing) {
+
+			_.merge(existing, current);
+			existing.$online = markOnline;
+			found = true;
+		});
+
+		if(!found) {
+			var newParticipant = { $state: _.cloneDeep(this._defaultState)};
+			_.merge(newParticipant, current);
+			newParticipant.$online = markOnline;
+
+			this.emit('beforeAddParticipant', newParticipant);
+			this.participants.push(newParticipant);
+		}
+	} // for: eventObj.participants
+
+	if(markExtrasOffline) {
+		var known = _.pluck(participants, 'id');
+
+		_.where(this.participants, function filter(item) {
+			// is unknown?
+			return known.indexOf(item.id) === -1;
+		}).forEach(function markOffline(item) {
+			item.$online = false;
+		});
+	}
+}; //_setParticipants
+
+
+chillweb.googleHangouts.provider('hangout', function() {
+
+	this._defaultState = {};
+	this.setDefaultState = function(state) {
+		this._defaultState = state;
+	};
+
+	this.$get = function() {
+		var hangout = new chillweb.Hangout(this._defaultState);	
+
+		gapi.hangout.onApiReady.add(function(eventObj){		
+			hangout._log('onApiReady', eventObj);
+
+			try {
+				if (eventObj.isApiReady) {
+					var participants = gapi.hangout.getParticipants();
+					var state = gapi.hangout.data.getState();
+
+					hangout._setParticipants(participants, 'sync');
+					hangout.myId = '!' + gapi.hangout.getLocalParticipantId();
+
+					hangout.isReady = true;
+					while(hangout._initQueue.length) {
+						var fn = hangout._initQueue.shift();
+						fn();
+					}
+
+					hangout.sendMyState();
+					hangout.emit('onApiReady');
+					hangout._emitUpdate();
+				}
+			} catch(e) {
+				hangout._log('onApiReady', e, e.stack);
+			}
+		});
+
+		gapi.hangout.data.onStateChanged.add(function(eventObj) {
+			hangout._log('onStateChanged', eventObj);
+
+			try {
+				for (var i = 0; i < eventObj.addedKeys.length; i++) {
+					var item = eventObj.addedKeys[i];
+					var value = JSON.parse(item.value);
+
+					hangout.emit(item.key, value);
+
+					if(item.key.indexOf('!') === 0) {
+						var p = [{
+							id: item.key.substring(1),
+							$state: value
+						}];
+
+						hangout._setParticipants(p, 'update');
+					}
+				}
+
+				hangout._emitUpdate();
+			} catch(e) {
+				hangout._log(e);
+			}
+		});
+
+		gapi.hangout.onParticipantsChanged.add(function(eventObj) {
+			try {
+				hangout._log('onParticipantsChanged', eventObj);
+				hangout._setParticipants(eventObj.participants, 'sync');
+				hangout._emitUpdate();
+			} catch(e) {
+				hangout._log(e);
+			}
+		});
+
+		return hangout;
+	};
+});
 if (typeof String.prototype.startsWith != 'function') {
   // see below for better implementation!
   String.prototype.startsWith = function (str){
@@ -420,14 +598,6 @@ if (typeof String.prototype.startsWith != 'function') {
   };
 }
 
-function createDefaultState() {
-	return {
-		cardSelected: 'None',
-		cardHistory: [],
-		needBreak: false,
-		cardBack: 'cardBackDefault'
-	};
-}
 
 function rgbToHex(rgb) {
 	// http://stackoverflow.com/a/13070198
@@ -442,9 +612,31 @@ function rgbToHex(rgb) {
 	return b;
 }
 
-var pokerApp = angular.module('scrumPokerHangout', ['ngAnimate']);
+//debugger;
+// Version: ###version###
+var pokerApp = angular.module('scrumPokerHangout', ['ngAnimate', 'angular-locker', 'angular-hangouts']);
 
-pokerApp.controller('mainCtrl', function ($scope) {
+pokerApp.config(['lockerProvider','hangoutProvider', function config(lockerProvider, hangoutProvider) {
+	var storageDriver = 'noop';
+	try { window.sessionStorage; storageDriver = 'session'; } catch(e) {}
+	try { window.localStorage; storageDriver = 'local'; } catch(e) {}
+
+	console.log('using', storageDriver);
+  lockerProvider.setDefaultDriver(storageDriver)
+  							.setDefaultNamespace('scrumPoker')
+                // .setSeparator('.')
+                .setEventsEnabled(false);
+
+  hangoutProvider.setDefaultState({
+		cardSelected: 'None',
+		cardHistory: [],
+		needBreak: false,
+		cardBack: 'cardBackDefault'
+	});
+
+}]);
+
+pokerApp.controller('mainCtrl', ['$scope', 'locker', 'hangout', function ($scope, locker, hangout) {
 	pokerApp.debug = $scope;
 
 	$scope.icons = {};
@@ -453,26 +645,49 @@ pokerApp.controller('mainCtrl', function ($scope) {
 	$scope.iconCategory = $scope.icons['default'];
 
 	$scope.cards = ["0","Half","1","2","3","5","8","13","20","40","100","Inf","Break","None"];
-	$scope.people = [];
-	$scope.state = createDefaultState();
+	
+	// Connect scope to hangout
+	$scope.participants = hangout.participants;
+	$scope.state = hangout.myState;
+
 	$scope.reveal = false;
 	$scope.animate = false;
 	$scope.showConfig = false;
 	$scope.lockUI = false;
-	$scope.cfg = {
+
+	$scope.resetMe = function(resetTime) {
+		$scope.lastReset = resetTime;
+		$scope.consensus = false;
+		$scope.selectCard('None', resetTime === null); // true on first reset
+		$scope.state.cardHistory = [];
+		$scope.revealsSinceReset = 0;
+
+		$scope.update();
+	};
+	
+	// Configuration
+	// TODO: https://github.com/tymondesigns/angular-locker
+	$scope.cfg = { 
 		smSize: 16,
 		lgMinSize: 16,
 		lgMaxSize: 64,
 		lgAutoSize: true,
 		cardBack: 'cardBackDefault'
 	};
-	/* Additional properties defined in the resetMe function below. */
+
+	$scope.applyConfig = function() {
+		$scope.state.cardBack = $scope.cfg.cardBack;
+		$('#myCards').css({ 'font-size': $scope.cfg.smSize +'px'});
+		$scope.autoSizeMainList();
+		$scope.showConfig = false;
+		// $scope.sync();
+	};
 
 
-	$scope.update = _.debounce($scope.$apply, 100);
 
 	$scope.autoSizeMainList = _.debounce(function() {
 		var mainList = $("#mainList");
+		// TODO: Better angular objects to use?
 		var w = $(window);
 		var d = $(document);
 
@@ -484,40 +699,33 @@ pokerApp.controller('mainCtrl', function ($scope) {
 		}
 	}, 100);
 
-	$scope.applyConfig = function() {
-		$scope.state.cardBack = $scope.cfg.cardBack;
-		$('#myCards').css({ 'font-size': $scope.cfg.smSize +'px'});
-		$scope.autoSizeMainList();
-		$scope.showConfig = false;
-		$scope.sync();
-	};
 
 	$scope.selectCard = function(card, force) {
-		if(!force && $scope.state.cardSelected === card) {
+		if(!force && hangout.myState.cardSelected === card) {
 			return;
 		}
 	
 
-		if($scope.reveal && $scope.state.cardSelected && $scope.state.cardSelected !== "None") {
-			$scope.state.cardHistory.unshift($scope.state.cardSelected);
+		if($scope.reveal && hangout.myState.cardSelected && hangout.myState.cardSelected !== "None") {
+			hangout.myState.cardHistory.unshift(hangout.myState.cardSelected);
 		}
 
 		if(card === "Break") {
-			$scope.state.needBreak = !$scope.state.needBreak;
+			hangout.myState.needBreak = !hangout.myState.needBreak;
 		} else {
-			$scope.state.cardSelected = card;
+			hangout.myState.cardSelected = card;
 
-			if(card === 'None') {
-				$scope.flashCard();
-			} else {
-				$scope.stopAnimations();
-			}
+			// if(card === 'None') {
+			// 	$scope.flashCard();
+			// } else {
+			// 	$scope.stopAnimations();
+			// }
 		}
 
 		$scope.update();
-		$scope.sync();
+		hangout.sendMyState();
 	};
-
+/*
 	$scope.aniElements = [];
 	$scope.stopAnimations = function() {
 
@@ -545,20 +753,25 @@ pokerApp.controller('mainCtrl', function ($scope) {
 		var key = gapi.hangout.getLocalParticipantId();
 		var value = JSON.stringify($scope.state);
 
-		gapi.hangout.data.setValue(key, value);
+		// gapi.hangout.data.setValue(key, value);
 	}, 250);
+*/
 
 	$scope.resetAll = function() {
-		gapi.hangout.data.setValue('!resetAll', (JSON.stringify(new Date())));
+		// gapi.hangout.data.setValue('!resetAll', (JSON.stringify(new Date())));
+		hangout.sendEvent('resetAll', new Date());
 		$scope.showAll(false);
 	};
 
 	$scope.showAll = function(reveal) {
-		gapi.hangout.data.setValue('!reveal', JSON.stringify(reveal));
+		// gapi.hangout.data.setValue('!reveal', JSON.stringify(reveal));
 		$scope.applyReveal(reveal);
+		hangout.sendEvent('reveal', reveal);
+		
 	};
 
 	$scope.hasConsensus = function() {
+		return false;/*
 		var card = null;
 		var cnt = 0;
 		var noneCnt = 0;
@@ -577,49 +790,60 @@ pokerApp.controller('mainCtrl', function ($scope) {
 			cnt++;
 		}
 
-		return cnt > 2;
+		return cnt > 2;*/
+	};
+/*
+	$scope.revealing = false;
+	$scope.toReveal = [];*/
+	$scope.applyReveal = function(value) {
+		$scope.reveal = value;
+		return;
+
+		// if($scope.revealing) {
+		// 	var v = value;
+		// 	$scope.toReveal.push(function() { $scope.applyReveal(v); });
+		// 	return;
+		// }
+
+		// $scope.revealing = true;
+		// var done = function(r, c) {
+		// 	$scope.reveal = r;
+		// 	$scope.consensus = c;
+		// 	$scope.revealing = false;
+		// 	if($scope.toReveal.length) {
+		// 		$scope.toReveal.pop()();
+		// 	} else {
+		// 		$scope.lockUI = false;
+		// 		$scope.update();
+		// 	}
+		// };
+
+		// if(!value) {
+		// 	return done(false, false);
+		// }
+
+		// $scope.revealsSinceReset++;
+		// var consensus = $scope.revealsSinceReset === 1 && 
+		// 	$scope.people.length > 1 &&
+		// 	$scope.hasConsensus();
+
+		// // reveal & consensus
+		// if(consensus) {
+		// 	$scope.flipCards(function() { done(true, true); });
+		// } else {
+		// 	return done(true, false);
+		// }
+
 	};
 
-	$scope.revealing = false;
-	$scope.toReveal = [];
-	$scope.applyReveal = function(value) {
-		if($scope.revealing) {
-			var v = value;
-			$scope.toReveal.push(function() { $scope.applyReveal(v); });
+	$scope.applyReset = function(value) {
+		if($scope.lastReset === value) {
 			return;
 		}
 
-		$scope.revealing = true;
-		var done = function(r, c) {
-			$scope.reveal = r;
-			$scope.consensus = c;
-			$scope.revealing = false;
-			if($scope.toReveal.length) {
-				$scope.toReveal.pop()();
-			} else {
-				$scope.lockUI = false;
-				$scope.update();
-			}
-		};
-
-		if(!value) {
-			return done(false, false);
-		}
-
-		$scope.revealsSinceReset++;
-		var consensus = $scope.revealsSinceReset === 1 && 
-			$scope.people.length > 1 &&
-			$scope.hasConsensus();
-
-		// reveal & consensus
-		if(consensus) {
-			$scope.flipCards(function() { done(true, true); });
-		} else {
-			return done(true, false);
-		}
-
+		$scope.resetMe(value);
 	};
-
+/*
 	$scope.flipCards = function(done) {
 		$scope.lockUI = true;
 		$scope.$apply(); // no debounce
@@ -651,68 +875,24 @@ pokerApp.controller('mainCtrl', function ($scope) {
 			}});
 		}});
 	};
+*/
 
-	$scope.applyStateChange = function(eventObj) {
-		$scope.consensus = false;
 
-		for (var e = eventObj.addedKeys.length - 1; e >= 0; e--) {
+	// Initialize the hangout
+	$scope.participants = hangout.participants;
+	$scope.state = hangout.myState;
 
-			if(eventObj.addedKeys[e].key === '!resetAll') {
-				if(eventObj.addedKeys[e].value != $scope.lastReset) {
-					$scope.resetMe(eventObj.addedKeys[e].value);
-				}
-			} else if(eventObj.addedKeys[e].key === '!reveal') {
-				var r = JSON.parse(eventObj.addedKeys[e].value);
-				$scope.applyReveal(r);
-			} else {
-				for (var s = $scope.people.length - 1; s >= 0; s--) {
-					if( $scope.people[s].id === eventObj.addedKeys[e].key ) {
-						$scope.people[s].state = JSON.parse(eventObj.addedKeys[e].value);
-					}
-				}
-			}
-		}
+	$scope.update = _.debounce(function() { 
+		console.log('scope', $scope);
+		$scope.$apply(); 
+	}, 100);
 
-		$scope.update();
-	};
+	hangout.on('update', $scope.update);
+	hangout.on('resetAll', $scope.applyReset);
+	hangout.on('reveal', $scope.applyReveal);
 
-	$scope.applyParticipants = function(participants) {
-		for (var e = participants.length - 1; e >= 0; e--) {
-
-			var found = false;			
-			for (var s = $scope.people.length - 1; s >= 0; s--) {
-				if( $scope.people[s].id === participants[e].id ) {
-					found = true;
-					$scope.people[s].hasAppEnabled = participants[e].hasAppEnabled;
-					$scope.people[s].online = true;
-				}
-			}
-
-			if(!found) {
-				$scope.people.push({
-					id: participants[e].id,
-					displayName: participants[e].person.displayName,
-					image: participants[e].person.image.url,
-					state: createDefaultState(),
-					online: true
-				});
-			}
-		} // for: eventObj.participants
-
-		$scope.update();
-	};
-
-	$scope.resetMe = function(resetTime) {
-		$scope.lastReset = resetTime;
-		$scope.consensus = false;
-		$scope.selectCard('None', resetTime === null); // true on first reset
-		$scope.state.cardHistory = [];
-		$scope.revealsSinceReset = 0;
-
-		$scope.update();
-	};
 	$scope.resetMe(null);
-
+/*
 	$scope.debug = {
 		enabled: false,
 
@@ -753,63 +933,15 @@ pokerApp.controller('mainCtrl', function ($scope) {
 			$scope.debug.showData = show;
 		}
 	};
+*/
 
-	gapi.hangout.onApiReady.add(function(eventObj){
-		$scope.debug.log.push('onApiReady('+eventObj.isApiReady+')');
-		if (eventObj.isApiReady) {
-
-
-			var participants = gapi.hangout.getParticipants();
-			var state = gapi.hangout.data.getState();
-
-			$scope.applyParticipants(participants);
-
-			// Create a similar object to the state change event
-			var e = { addedKeys: [] };
-			for(var key in state) {
-				if (state.hasOwnProperty(key)) {
-					e.addedKeys.push({ key: key, value: state[key] });
-				}
-			}
-			$scope.applyStateChange(e);
-		}
-
-		$scope.update();
-		$scope.autoSizeMainList();
-	});
-
-	gapi.hangout.data.onStateChanged.add(function(eventObj) {
-		$scope.debug.log.push('onStateChanged');
-		$scope.applyStateChange(eventObj);
-	});
-
-	gapi.hangout.onParticipantsChanged.add(function(eventObj) {
-		$scope.debug.log.push('onParticipantsChanged');
-		$scope.applyParticipants(eventObj.participants);
-		$scope.update();
-		$scope.autoSizeMainList();
-	});
-
-	gapi.hangout.onParticipantsRemoved.add(function(eventObj) {
-		$scope.debug.log.push('onParticipantsRemoved');
-		for (var e = eventObj.removedParticipants.length - 1; e >= 0; e--) {
-			for (var s = $scope.people.length - 1; s >= 0; s--) {
-				if(eventObj.removedParticipants[e].id == $scope.people[s].id) {
-					$scope.people[s].online = false;
-				}
-			}
-		}
-
-		$scope.update();
-		$scope.autoSizeMainList();
-	});
 
 	$(window).resize(_.debounce(function() {
 		$scope.autoSizeMainList();
-		$scope.animate = true;
+		//$scope.animate = true;
 		$scope.update();
 	}, 500));
-});
+}]);
 
 
 

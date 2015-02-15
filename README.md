@@ -11,10 +11,12 @@
 ** More
 ** Filter symbols that I use in the UI
 * '$' breaks the build script
+* Bar graph or pie chart to show number distribution.
+* Coffee cup shouldn't affect card change history.
 
 ## "Build"
 ### Required
-  npm install grunt
+  brew install terminal-notifier
   npm install -g grunt-cli
   npm install
   download https://raw.githubusercontent.com/FortAwesome/Font-Awesome/master/src/icons.yml
