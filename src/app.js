@@ -40,7 +40,6 @@ pokerApp.config(['lockerProvider','hangoutProvider', function config(lockerProvi
 		needBreak: false,
 		cardBack: 'cardBackDefault'
 	});
-
 }]);
 
 pokerApp.controller('mainCtrl', ['$scope', 'locker', 'hangout', function ($scope, locker, hangout) {
@@ -63,13 +62,16 @@ pokerApp.controller('mainCtrl', ['$scope', 'locker', 'hangout', function ($scope
 	$scope.lockUI = false;
 
 	$scope.resetMe = function(resetTime) {
+		console.log('resetMe');
 		$scope.lastReset = resetTime;
 		$scope.consensus = false;
 		$scope.selectCard('None', resetTime === null); // true on first reset
-		$scope.state.cardHistory = [];
 		$scope.revealsSinceReset = 0;
-
 		$scope.update();
+
+		hangout.myState.cardHistory = [];
+		console.log('myState', hangout.myState);
+		hangout.sendMyState();
 	};
 	
 	// Configuration
@@ -113,7 +115,10 @@ pokerApp.controller('mainCtrl', ['$scope', 'locker', 'hangout', function ($scope
 		}
 	
 
-		if($scope.reveal && hangout.myState.cardSelected && hangout.myState.cardSelected !== "None") {
+		if($scope.reveal && 
+			hangout.myState.cardSelected && 
+			hangout.myState.cardSelected !== "None" &&
+			card !== "Break") {
 			hangout.myState.cardHistory.unshift(hangout.myState.cardSelected);
 		}
 
@@ -244,6 +249,7 @@ pokerApp.controller('mainCtrl', ['$scope', 'locker', 'hangout', function ($scope
 	};
 
 	$scope.applyReset = function(value) {
+		console.log('applyReset');
 		if($scope.lastReset === value) {
 			return;
 		}

@@ -2,13 +2,21 @@ var chillweb = {};
 chillweb.googleHangouts = angular.module('angular-hangouts', []);
 
 
-chillweb.Hangout = function(state) {
-	this._defaultState = state || {};
+chillweb.Hangout = function(defaults) {
+	this._mergeCustomizer = function(objectValue, sourceValue, key, object, source) {
+  	if(_.isArray(objectValue) && _.isArray(sourceValue)) {
+  		objectValue.length = sourceValue.length;
+  	}
+  };
+	this._mergeThisArg = null;
+	this._defaultState = {};
 	this._initQueue = [];
 	this.debug = true;
 	this.isReady = false;
 	this.myId = null;
 	this.participants = [];
+
+	_.merge(this, defaults);
 	this.myState = _.cloneDeep(this._defaultState);
 };
 
@@ -49,6 +57,14 @@ chillweb.Hangout.prototype.sendEvent = function(key, value) {
 	}
 };
 
+chillweb.Hangout.prototype._mergeParticipant = function(dest, source) {
+	if(this._mergeCustomizer) {
+		var thisArg = this._mergeThisArg || this;
+		_.merge(dest, source, this._mergeCustomizer, thisArg);
+	} else {
+		_.merge(dest, source);
+	}
+};
 
 chillweb.Hangout.prototype._setParticipants = function(participants, action) {
 	/* actions:
@@ -66,14 +82,15 @@ chillweb.Hangout.prototype._setParticipants = function(participants, action) {
 
 		_.where(this.participants, { id: current.id }).forEach(function upsert(existing) {
 
-			_.merge(existing, current);
+			this._mergeParticipant(existing, current);
 			existing.$online = markOnline;
 			found = true;
-		});
+		}.bind(this));
 
 		if(!found) {
 			var newParticipant = { $state: _.cloneDeep(this._defaultState)};
-			_.merge(newParticipant, current);
+			
+			this._mergeParticipant(newParticipant, current);
 			newParticipant.$online = markOnline;
 
 			this.emit('beforeAddParticipant', newParticipant);
@@ -96,13 +113,20 @@ chillweb.Hangout.prototype._setParticipants = function(participants, action) {
 
 chillweb.googleHangouts.provider('hangout', function() {
 
-	this._defaultState = {};
+	this._defaults = {};
+
 	this.setDefaultState = function(state) {
-		this._defaultState = state;
+		this._defaults._defaultState = state;
+	};
+
+	// https://lodash.com/docs#merge
+	this.setMergeCustomizer = function(customizer, thisArg) {
+		this._defaults._mergeCustomizer = customizer;
+		this._defaults._mergeThisArg = thisArg;
 	};
 
 	this.$get = function() {
-		var hangout = new chillweb.Hangout(this._defaultState);	
+		var hangout = new chillweb.Hangout(this._defaults);	
 
 		gapi.hangout.onApiReady.add(function(eventObj){		
 			hangout._log('onApiReady', eventObj);
@@ -138,6 +162,7 @@ chillweb.googleHangouts.provider('hangout', function() {
 					var item = eventObj.addedKeys[i];
 					var value = JSON.parse(item.value);
 
+					hangout._log('emit', item.key);
 					hangout.emit(item.key, value);
 
 					if(item.key.indexOf('!') === 0) {
